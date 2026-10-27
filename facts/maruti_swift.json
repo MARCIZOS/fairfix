@@ -1,0 +1,17 @@
+{
+  "vehicle_id": "maruti_swift",
+  "display_name": "Maruti Suzuki Swift",
+  "make": "Maruti Suzuki",
+  "model": "Swift",
+  "variants": [],
+  "fuels": ["petrol", "cng"],
+  "status": "template",
+  "fictional": false,
+  "verified_by": "",
+  "verified_on": null,
+  "schedule_complete": false,
+  "recall_sources_checked": [],
+  "recall_lookup_url": "",
+  "notes": "TEMPLATE - not yet supported. Swift generations and fuel types can have different schedules: record applies_to.variants / fuels / model years on every fact. Fill from the official owner's manual and Maruti Suzuki warranty and recall pages, then mark verified as described in honda_activa.json.",
+  "facts": []
+}

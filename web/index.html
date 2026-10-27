@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FairFix: check your service bill</title>
+<meta name="description" content="A second opinion on your vehicle service bill, line by line, with the evidence behind every result.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Kalam:wght@400;700&family=Noto+Sans+Devanagari:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="masthead">
+  <a class="brand" href="#" data-go="home">FairFix</a>
+  <p class="tagline">A second opinion on your service bill, before you pay.</p>
+</header>
+
+<main id="app">
+
+  <!-- HOME -->
+  <section class="view" id="view-home" aria-labelledby="home-h">
+    <h1 id="home-h" class="lede">Which lines on this bill should you ask about?</h1>
+    <p class="body">Photograph the bill and the estimate. FairFix reads every line, checks it against the official service schedule, comparable part prices, warranty and recall information and your estimate, and drafts a polite question for the service advisor. Every result shows its evidence, and when FairFix can't verify something it says so.</p>
+    <div class="actions">
+      <button class="btn primary" data-go="vehicle">Check a bill</button>
+    </div>
+    <div id="demo-list" class="demo-list" aria-live="polite"></div>
+    <p class="fine" id="privacy-note"></p>
+  </section>
+
+  <!-- STEP 1: VEHICLE + PHOTOS -->
+  <section class="view" id="view-vehicle" hidden aria-labelledby="veh-h">
+    <ol class="steps" aria-label="Progress"><li aria-current="step">Vehicle and photos</li><li>Check what was read</li><li>Results</li></ol>
+    <h2 id="veh-h">Your vehicle</h2>
+    <form id="vehicle-form" class="form" novalidate>
+      <label>Vehicle
+        <select name="vehicle_id" id="vehicle-select" required></select>
+      </label>
+      <p class="hint" id="vehicle-support"></p>
+      <div class="row other-only" hidden>
+        <label>Make <input name="make" autocomplete="off"></label>
+        <label>Model <input name="model" autocomplete="off"></label>
+      </div>
+      <div class="row">
+        <label>Variant <input name="variant" autocomplete="off" placeholder="e.g. STD, VXI"></label>
+        <label>Fuel
+          <select name="fuel"><option value="">Not sure</option><option>petrol</option><option>diesel</option><option>cng</option><option>electric</option></select>
+        </label>
+      </div>
+      <div class="row">
+        <label>Odometer (km) <input name="odometer_km" inputmode="numeric" placeholder="as on the bill"></label>
+        <label>City <input name="city" autocomplete="address-level2"></label>
+      </div>
+      <div class="row">
+        <label>Purchase date <input type="date" name="purchase_date"></label>
+        <label>Registration date <input type="date" name="registration_date"></label>
+      </div>
+      <div class="row">
+        <label>Manufactured (month) <input type="month" name="mfg_month"></label>
+        <label class="check"><input type="checkbox" name="severe_use"> Severe use (dusty roads, heavy traffic, taxi)</label>
+      </div>
+      <p class="hint">Warranty usually runs from the purchase or registration date, and recalls depend on the manufacturing month. Leave anything you don't know blank; FairFix will say what it couldn't check.</p>
+
+      <details class="vin">
+        <summary>VIN or chassis number (optional)</summary>
+        <label>VIN / chassis number <input id="vin" autocomplete="off" spellcheck="false"></label>
+        <p class="hint">Stays in this browser. FairFix never sends it to its server. It's only used if you choose to open the manufacturer's recall lookup.</p>
+      </details>
+
+      <h2>Photos</h2>
+      <label class="drop">Bill (required, up to 6 pages)
+        <input type="file" id="bill-files" accept="image/jpeg,image/png,image/webp" multiple capture="environment">
+      </label>
+      <label class="drop">Original estimate (optional)
+        <input type="file" id="estimate-files" accept="image/jpeg,image/png,image/webp" multiple capture="environment">
+      </label>
+      <p class="hint">Blur or cover names, phone numbers and the registration number if you can. Photos are read by an AI model hosted by Nebius and not kept by FairFix.</p>
+
+      <h2>Approvals after the estimate</h2>
+      <p class="hint">Anything you agreed to later, for example on a call with the advisor. Written notes only.</p>
+      <div id="approvals"></div>
+      <button type="button" class="btn quiet" id="add-approval">Add an approval note</button>
+
+      <details class="oldpart">
+        <summary>Photo of a removed part (optional)</summary>
+        <label>Which part <input id="oldpart-name" placeholder="e.g. brake shoes"></label>
+        <label class="drop">Photo <input type="file" id="oldpart-file" accept="image/jpeg,image/png,image/webp" capture="environment"></label>
+        <p class="hint">Shown as a photo observation only. A photo can't prove whether a replacement was needed.</p>
+      </details>
+
+      <p class="error" id="vehicle-error" role="alert" hidden></p>
+      <div class="actions">
+        <button type="submit" class="btn primary" id="read-btn">Read the bill</button>
+        <button type="button" class="btn quiet" id="manual-btn">Type the bill in instead</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- STEP 2: CORRECTION -->
+  <section class="view" id="view-correct" hidden aria-labelledby="cor-h">
+    <ol class="steps" aria-label="Progress"><li>Vehicle and photos</li><li aria-current="step">Check what was read</li><li>Results</li></ol>
+    <h2 id="cor-h">Check what was read</h2>
+    <p class="body">Fix anything misread before the checks run. Values you change are marked as corrected by you, and the original reading is kept.</p>
+    <div id="extract-notes"></div>
+    <form id="correct-form" class="form" novalidate>
+      <div class="row">
+        <label>Bill date <input type="date" data-doc="doc_date"></label>
+        <label>Odometer on bill (km) <input inputmode="decimal" data-doc="odometer_km"></label>
+      </div>
+      <h3>Lines</h3>
+      <div id="lines"></div>
+      <button type="button" class="btn quiet" id="add-line">Add a line</button>
+
+      <h3>Totals as printed</h3>
+      <div class="row">
+        <label>Subtotal <input inputmode="decimal" data-doc="subtotal_inr"></label>
+        <label>Discount <input inputmode="decimal" data-doc="discount_inr"></label>
+      </div>
+      <div class="row">
+        <label>Discount applied
+          <select data-doc="discount_applied"><option value="">Not shown</option><option value="before_tax">Before tax</option><option value="after_tax">After tax</option></select>
+        </label>
+        <label>Prices on the bill
+          <select data-doc="prices_include_tax"><option value="">Not shown</option><option value="true">Include GST</option><option value="false">Exclude GST</option></select>
+        </label>
+      </div>
+      <div id="taxes"></div>
+      <button type="button" class="btn quiet" id="add-tax">Add a tax line</button>
+      <div class="row">
+        <label>Round off <input inputmode="decimal" data-doc="round_off_inr"></label>
+        <label>Grand total <input inputmode="decimal" data-doc="grand_total_inr"></label>
+      </div>
+      <div class="actions">
+        <button type="submit" class="btn primary" id="audit-btn">Run the checks</button>
+        <button type="button" class="btn quiet" data-go="vehicle">Back</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- STEP 3: RESULTS -->
+  <section class="view" id="view-result" hidden aria-labelledby="res-h">
+    <ol class="steps" aria-label="Progress" id="result-steps"><li>Vehicle and photos</li><li>Check what was read</li><li aria-current="step">Results</li></ol>
+    <div id="result-banner"></div>
+    <h2 id="res-h" class="result-head"></h2>
+    <p class="body" id="result-sub"></p>
+
+    <div class="slip" id="slip" aria-label="Your bill, line by line"></div>
+
+    <section class="msg" aria-labelledby="msg-h">
+      <h3 id="msg-h">Message to the service advisor</h3>
+      <div class="lang" role="group" aria-label="Message language">
+        <button class="chip" data-lang="en" aria-pressed="true">English</button>
+        <button class="chip" data-lang="hi" aria-pressed="false">हिन्दी</button>
+      </div>
+      <textarea id="message" rows="9" aria-label="Message text"></textarea>
+      <div class="actions">
+        <button class="btn primary" id="copy-msg">Copy message</button>
+        <a class="btn quiet" id="wa-msg" target="_blank" rel="noopener">Open in WhatsApp</a>
+      </div>
+      <p class="hint" id="msg-source"></p>
+    </section>
+
+    <details class="next">
+      <summary>If you still disagree after asking</summary>
+      <p class="body">Ask for the job card and the old parts before paying. If a question isn't resolved, the National Consumer Helpline (1915, or consumerhelpline.gov.in) can advise. This is general guidance, not legal advice.</p>
+    </details>
+
+    <p class="fine" id="disclaimer"></p>
+    <div class="actions"><button class="btn quiet" data-go="home">Check another bill</button></div>
+  </section>
+</main>
+
+<dialog id="vin-dialog">
+  <form method="dialog">
+    <h3>Open the manufacturer's recall lookup?</h3>
+    <p>Only the manufacturer can confirm whether a recall applies to your vehicle. If you enter your VIN or chassis number on their page, it is shared with them. FairFix doesn't send it anywhere.</p>
+    <p id="vin-copy-note" hidden>Your VIN will be copied so you can paste it there.</p>
+    <menu><button value="cancel" class="btn quiet">Cancel</button><button value="open" class="btn primary">Open their page</button></menu>
+  </form>
+</dialog>
+
+<div id="busy" class="busy" hidden role="status" aria-live="polite"><span class="pen" aria-hidden="true"></span><span id="busy-text">Working</span></div>
+
+<template id="line-tpl">
+  <fieldset class="line-edit">
+    <legend></legend>
+    <label class="wide">Text on the bill <input data-f="raw_text"></label>
+    <p class="hint orig" hidden></p>
+    <div class="row">
+      <label>What it is <select data-k="job"></select></label>
+      <label>Type
+        <select data-k="kind"><option value="unknown">Not sure</option><option value="part">Part</option><option value="labour">Labour</option><option value="consumable">Consumable</option><option value="part_with_fitting">Part with fitting</option></select>
+      </label>
+    </div>
+    <div class="row three">
+      <label>Qty <input inputmode="decimal" data-f="qty"></label>
+      <label>Unit price <input inputmode="decimal" data-f="unit_price_inr"></label>
+      <label>Amount <input inputmode="decimal" data-f="line_total_inr"></label>
+    </div>
+    <div class="row">
+      <label>Part grade
+        <select data-k="grade"><option value="unknown">Not shown</option><option value="genuine">Genuine</option><option value="oem">OEM</option><option value="aftermarket">Aftermarket</option></select>
+      </label>
+      <label>Part number <input data-f="part_number" autocomplete="off"></label>
+    </div>
+    <div class="history" hidden>
+      <label>Last replaced
+        <select data-h="status"><option value="unknown">Don't know</option><option value="never">Never, since new</option><option value="replaced">At a known service</option></select>
+      </label>
+      <div class="row when" hidden>
+        <label>At km <input inputmode="numeric" data-h="km"></label>
+        <label>On <input type="date" data-h="on"></label>
+      </div>
+    </div>
+    <button type="button" class="btn quiet small remove">Remove this line</button>
+  </fieldset>
+</template>
+
+<script src="app.js"></script>
+</body>
+</html>

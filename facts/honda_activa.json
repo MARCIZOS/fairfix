@@ -1,0 +1,17 @@
+{
+  "vehicle_id": "honda_activa",
+  "display_name": "Honda Activa",
+  "make": "Honda",
+  "model": "Activa",
+  "variants": [],
+  "fuels": ["petrol"],
+  "status": "template",
+  "fictional": false,
+  "verified_by": "",
+  "verified_on": null,
+  "schedule_complete": false,
+  "recall_sources_checked": [],
+  "recall_lookup_url": "",
+  "notes": "TEMPLATE - not yet supported. Fill from the official owner's manual / service schedule and Honda's warranty and recall pages. For each fact: copy the exact sentence into 'excerpt', set source_rank 1 only for manufacturer or SIAM pages, set verified_by_human true after you read the page yourself. Then set status to 'verified', fill verified_by/verified_on, and set schedule_complete true only if you transcribed the whole schedule. Run scripts/build_fact_pack.py to collect candidate pages into facts/candidates/.",
+  "facts": []
+}

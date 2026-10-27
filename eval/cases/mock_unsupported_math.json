@@ -1,0 +1,31 @@
+{
+  "title": "Mock: unsupported vehicle with arithmetic issues",
+  "description": "Partial audit. Vehicle has no verified fact pack, so only arithmetic and authorization run. One line doesn't multiply out and the total is off by ₹150.",
+  "demo": false,
+  "real": false,
+  "source": "mock",
+  "input": {
+    "vehicle": {"vehicle_id": "honda_activa", "make": "Honda", "model": "Activa", "odometer_km": 11800, "purchase_date": "2024-02-10"},
+    "bill": {
+      "kind": "bill", "doc_date": "2026-10-18",
+      "lines": [
+        {"raw_text": "ENGINE OIL", "qty": 1, "unit_price_inr": 390, "line_total_inr": 390, "kind": "part"},
+        {"raw_text": "SPARK PLUG", "qty": 1, "unit_price_inr": 180, "line_total_inr": 210, "kind": "part"},
+        {"raw_text": "SERVICE CHARGE", "qty": 1, "unit_price_inr": 350, "line_total_inr": 350, "kind": "labour"}
+      ],
+      "subtotal_inr": 950, "prices_include_tax": false,
+      "tax_lines": [{"name": "GST", "amount_inr": 171}],
+      "grand_total_inr": 1271
+    },
+    "estimate": null,
+    "approvals": []
+  },
+  "expected": {
+    "lines": [
+      {"job": "engine_oil_replacement", "schedule": "unable_to_verify", "price": "unable_to_verify", "coverage": "unable_to_verify", "authorization": "not_applicable", "arithmetic": "supported"},
+      {"job": "spark_plug_replacement", "schedule": "unable_to_verify", "price": "unable_to_verify", "coverage": "unable_to_verify", "authorization": "not_applicable", "arithmetic": "needs_confirmation"},
+      {"job": "periodic_service_labour", "schedule": "unable_to_verify", "price": "unable_to_verify", "coverage": "unable_to_verify", "authorization": "not_applicable", "arithmetic": "supported"}
+    ],
+    "bill": ["supported", "needs_confirmation"]
+  }
+}

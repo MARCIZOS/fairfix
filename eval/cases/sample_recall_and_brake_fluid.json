@@ -1,0 +1,35 @@
+{
+  "title": "Sample: fork seal and brake fluid on a fictional scooter",
+  "description": "Mock bill, fictional vehicle. A potential recall match (to verify with the manufacturer) and a brake-fluid change before its 24-month interval. Prices include tax with a discount.",
+  "demo": true,
+  "real": false,
+  "source": "mock, fictional vehicle",
+  "input": {
+    "vehicle": {
+      "vehicle_id": "fairfix_sample_scooter", "make": "FairFix", "model": "Sample Scooter", "variant": "STD", "fuel": "petrol",
+      "odometer_km": 7400, "purchase_date": "2025-08-20", "mfg_month": "2025-03", "city": "Ghaziabad",
+      "history": [{"job": "brake_fluid_replacement", "status": "never"}]
+    },
+    "bill": {
+      "kind": "bill", "doc_date": "2026-10-20",
+      "lines": [
+        {"raw_text": "FRONT FORK OIL SEAL KIT", "qty": 2, "unit_price_inr": 240, "line_total_inr": 480, "kind": "part", "grade": "genuine"},
+        {"raw_text": "BRAKE FLUID DOT 3", "qty": 1, "unit_price_inr": 180, "line_total_inr": 180, "kind": "part", "grade": "genuine"},
+        {"raw_text": "WASHER FLUID", "qty": 1, "unit_price_inr": 60, "line_total_inr": 60, "kind": "consumable"}
+      ],
+      "subtotal_inr": 720, "discount_inr": 50, "prices_include_tax": true,
+      "tax_lines": [{"name": "GST (included)", "amount_inr": 102.2}],
+      "grand_total_inr": 670
+    },
+    "estimate": null,
+    "approvals": []
+  },
+  "expected": {
+    "lines": [
+      {"job": "suspension_repair", "schedule": "not_applicable", "price": "unable_to_verify", "coverage": "needs_confirmation", "authorization": "not_applicable", "arithmetic": "supported"},
+      {"job": "brake_fluid_replacement", "schedule": "needs_confirmation", "price": "unable_to_verify", "coverage": "not_applicable", "authorization": "not_applicable", "arithmetic": "supported"},
+      {"job": "washer_fluid", "schedule": "not_applicable", "price": "unable_to_verify", "coverage": "not_applicable", "authorization": "not_applicable", "arithmetic": "supported"}
+    ],
+    "bill": ["supported", "supported"]
+  }
+}
