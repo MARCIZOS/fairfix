@@ -1,0 +1,11 @@
+# Keep line endings consistent across Windows, macOS and Linux.
+* text=auto eol=lf
+# Windows batch files must keep CRLF to run.
+*.bat text eol=crlf
+# Binary files: never touch.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.woff2 binary
+*.sqlite binary
