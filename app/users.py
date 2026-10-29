@@ -74,7 +74,9 @@ def _tx():
     pg = bool(settings.database_url)
     if pg:
         import psycopg                                  # only needed when DATABASE_URL is set
-        con = psycopg.connect(settings.database_url, connect_timeout=10)
+        # prepare_threshold=None: no server-side prepared statements, so Neon's pooled
+        # (PgBouncer transaction-mode) connection string works as well as the direct one.
+        con = psycopg.connect(settings.database_url, connect_timeout=10, prepare_threshold=None)
     else:
         settings.users_db.parent.mkdir(parents=True, exist_ok=True)
         con = sqlite3.connect(settings.users_db, timeout=10)
