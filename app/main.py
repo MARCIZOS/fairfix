@@ -18,6 +18,7 @@ Endpoints
 
 from __future__ import annotations
 
+import asyncio
 import base64
 import binascii
 import json
@@ -260,16 +261,19 @@ async def extract(bill: list[UploadFile] = File(...), estimate: list[UploadFile]
     est_pages = await _read_pages(estimate)
     if not bill_pages:
         raise HTTPException(400, "Add at least one photo of the bill.")
+    # The model calls block, so they run in worker threads: the server keeps answering other
+    # requests (and the host's health checks) while Nemotron reads. Bill and estimate are read at once.
     t0 = time.perf_counter()
     try:
-        bdoc = extract_document(bill_pages, "bill")
-        edoc = extract_document(est_pages, "estimate") if est_pages else None
+        bdoc, edoc = await asyncio.gather(
+            asyncio.to_thread(extract_document, bill_pages, "bill"),
+            asyncio.to_thread(extract_document, est_pages, "estimate") if est_pages else asyncio.sleep(0, None))
     except ModelError as exc:
         raise HTTPException(502, f"The bill couldn't be read ({exc.kind}). Try a sharper, flatter photo.")
     read_ms = (time.perf_counter() - t0) * 1000
-    warnings = normalise.normalise(bdoc)
+    warnings = await asyncio.to_thread(normalise.normalise, bdoc)
     if edoc:
-        warnings += normalise.normalise(edoc)
+        warnings += await asyncio.to_thread(normalise.normalise, edoc)
     pages = len(bill_pages) + len(est_pages)
     trace = TraceStep(step="read", label="Read the photos", engine=display_model(settings.model_vision), ms=read_ms,
                       detail=f"{len(bdoc.lines)} lines from {pages} page{'s' if pages != 1 else ''}; personal details removed")

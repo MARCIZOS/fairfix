@@ -320,3 +320,37 @@ def test_stats_endpoint_shape(tmp_path, monkeypatch):
     s = evalreport.call_stats()
     assert s["total_calls"] == 2 and s["outcomes"]["busy_retry"] == 1
     assert s["by_model"][0]["prompt_tokens"] == 10
+
+
+def test_extract_does_not_block_other_requests(keyed, monkeypatch):
+    """A slow photo read must not freeze the server: hosts restart apps whose health check stops answering."""
+    import asyncio
+    import time as _time
+
+    import httpx
+
+    from app import main as main_mod
+    monkeypatch.setattr(main_mod, "settings", keyed)
+
+    def slow_extract(pages, kind="bill"):
+        _time.sleep(1.2)                                   # stands in for a Nemotron call
+        return Document.model_validate({"kind": kind, "lines": [{"raw_text": "AIR CLNR ELEMENT", "line_total_inr": 320}]})
+
+    monkeypatch.setattr(main_mod, "extract_document", slow_extract)
+    monkeypatch.setattr(main_mod.normalise, "normalise", lambda doc, **kw: [])
+
+    async def run():
+        transport = httpx.ASGITransport(app=main_mod.app)
+        async with httpx.AsyncClient(transport=transport, base_url="http://t") as c:
+            files = [("bill", ("b.jpg", b"\xff\xd8\xff", "image/jpeg")), ("estimate", ("e.jpg", b"\xff\xd8\xff", "image/jpeg"))]
+            t0 = _time.perf_counter()
+            read = asyncio.create_task(c.post("/api/extract", files=files))
+            await asyncio.sleep(0.2)
+            h = await c.get("/healthz")
+            health_s = _time.perf_counter() - t0
+            r = await read
+            return h.status_code, health_s, r.status_code, _time.perf_counter() - t0
+
+    hs, health_s, rs, total_s = asyncio.run(run())
+    assert hs == 200 and health_s < 0.8          # answered while the read was still running
+    assert rs == 200 and total_s < 2.2           # bill and estimate were read at the same time
