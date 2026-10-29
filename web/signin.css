@@ -30,8 +30,6 @@ main.signin { max-width: calc(100vw - 2 * var(--edge)); display: grid; gap: 2rem
 @media (min-width: 52rem) { .home-signin { grid-template-columns: 1.1fr .9fr; gap: 4rem; } }
 .home-signin h2 { font-size: clamp(1.7rem, 3.6vw, 2.4rem); line-height: 1.1; margin: 0 0 .8rem; letter-spacing: -.015em; max-width: 18ch; }
 .home-signin .token { animation: none; max-width: 30rem; width: 100%; justify-self: center; }
-.si-need { margin: -.3rem 0 .9rem; padding: .6rem .8rem; border-radius: 8px; background: var(--pen-wash); border-left: 4px solid var(--pen); font-weight: 700; }
-.si-need:not([hidden]) { animation: inkin .35s var(--ease); }
 
 /* tabs, fields, password toggle */
 .af-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; background: var(--paper); border-radius: 12px; margin-bottom: 1.1rem; }

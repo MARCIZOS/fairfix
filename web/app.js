@@ -46,7 +46,6 @@ function num(v) {
 
 /* Accounts: the session is an HttpOnly cookie; auth-ui.js renders the sign-in card. */
 const AUTH = { required: true, signedIn: false };
-let homeCard = null;
 
 function onSession(sess) {
   AUTH.required = sess.required; AUTH.signedIn = sess.signed_in;
@@ -54,11 +53,10 @@ function onSession(sess) {
   $("#signed").hidden = !inSession;
   $("#signed").title = inSession ? `Signed in as ${sess.email}` : "";
   $("#nav-signin").hidden = inSession;
-  if (inSession) $("#hs-need").hidden = true;
 }
 
 /* Confirm the session before opening a private bill workflow. */
-async function ensureAccess(next = "vehicle") {
+async function ensureAccess() {
   const session = await FFAuth.refresh();
   if (!session.required || session.signed_in) return true;
   location.href = "/signin.html";
@@ -188,8 +186,7 @@ async function init() {
     $("#home-signin").scrollIntoView({ behavior: REDUCED ? "auto" : "smooth" });
   });
   heroInit();
-  homeCard = FFAuth.mount($("#hs-card"), {
-    afterSignIn: () => { if (S.afterSignin) { const go = S.afterSignin; S.afterSignin = null; show(go); } },
+  FFAuth.mount($("#hs-card"), {
     checkButton: () => el("button", { type: "button", class: "btn primary", "data-go": "vehicle" }, "Check a bill"),
   });
   FFAuth.onChange(onSession);

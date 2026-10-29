@@ -10,3 +10,5 @@ eval/images/private/
 data/
 eval/run_log.txt
 logs/check_*
+logs/*.log
+logs/*.json
