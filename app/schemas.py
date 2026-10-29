@@ -18,13 +18,6 @@ from pydantic import BaseModel, ConfigDict, Field as PField, model_validator
 T = TypeVar("T")
 
 Category = Literal["supported", "needs_confirmation", "unable_to_verify", "not_applicable"]
-CATEGORY_LABELS: dict[str, str] = {
-    "supported": "Supported by evidence",
-    "needs_confirmation": "Needs confirmation",
-    "unable_to_verify": "Unable to verify",
-    "not_applicable": "Not applicable",
-}
-
 Check = Literal["schedule", "price", "coverage", "authorization", "arithmetic"]
 LineKind = Literal["part", "labour", "consumable", "part_with_fitting", "unknown"]
 Grade = Literal["genuine", "oem", "aftermarket", "unknown"]
@@ -166,9 +159,6 @@ class Finding(Loose):
     verify_url: str | None = None
     calculation: str | None = None
 
-    @property
-    def category_label(self) -> str:
-        return CATEGORY_LABELS[self.category]
 
 
 class OldPartObservation(Loose):
@@ -184,6 +174,17 @@ class LineResult(Loose):
     findings: list[Finding]
 
 
+class TraceStep(Loose):
+    """One step of an audit as it actually ran: shown in the UI's pipeline strip."""
+
+    step: str                       # read | map | facts | prices | decide | photo | message
+    label: str                      # e.g. "Mapped lines to standard jobs"
+    engine: str                     # e.g. "Nemotron 3 Super", "Python rules", "Tavily", "Alias table"
+    ms: float
+    detail: str = ""                # e.g. "5 by alias table, 1 by Nemotron"
+    skipped: bool = False
+
+
 class AuditReport(Loose):
     lines: list[LineResult]
     bill_findings: list[Finding]
@@ -196,3 +197,4 @@ class AuditReport(Loose):
     message_source: Literal["model", "template"] = "template"
     disclaimer: str = "A second opinion from public information, not a mechanic's inspection or legal advice."
     warnings: list[str] = PField(default_factory=list)
+    trace: list[TraceStep] = PField(default_factory=list)

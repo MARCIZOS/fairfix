@@ -1,0 +1,122 @@
+{
+  "vehicle": {
+    "vehicle_id": "fairfix_sample_scooter",
+    "make": "FairFix",
+    "model": "Sample Scooter",
+    "variant": "STD",
+    "fuel": "petrol",
+    "odometer_km": 9800,
+    "purchase_date": "2025-08-20",
+    "mfg_month": "2025-07",
+    "city": "Ghaziabad",
+    "history": [
+      {
+        "job": "air_filter_replacement",
+        "status": "never"
+      },
+      {
+        "job": "engine_oil_replacement",
+        "status": "replaced",
+        "km": 5000,
+        "on": "2026-04-15"
+      }
+    ]
+  },
+  "bill": {
+    "kind": "bill",
+    "doc_date": "2026-10-20",
+    "odometer_km": 9800,
+    "job_card_no": "JC-0000-SAMPLE",
+    "lines": [
+      {
+        "raw_text": "ENGINE OIL 10W30 0.8L",
+        "qty": 1,
+        "unit_price_inr": 380,
+        "line_total_inr": 380,
+        "kind": "part",
+        "grade": "genuine"
+      },
+      {
+        "raw_text": "AIR CLNR ELEMENT",
+        "qty": 1,
+        "unit_price_inr": 320,
+        "line_total_inr": 320,
+        "kind": "part",
+        "grade": "genuine"
+      },
+      {
+        "raw_text": "ENG FLUSH",
+        "qty": 1,
+        "unit_price_inr": 450,
+        "line_total_inr": 450,
+        "kind": "part",
+        "grade": "unknown"
+      },
+      {
+        "raw_text": "BRAKE SHOE SET (REAR)",
+        "qty": 1,
+        "unit_price_inr": 350,
+        "line_total_inr": 350,
+        "kind": "part",
+        "grade": "genuine"
+      },
+      {
+        "raw_text": "PERIODIC SERVICE LABOUR",
+        "qty": 1,
+        "unit_price_inr": 400,
+        "line_total_inr": 400,
+        "kind": "labour"
+      },
+      {
+        "raw_text": "SPL TRTMT XQ-7",
+        "qty": 1,
+        "unit_price_inr": 299,
+        "line_total_inr": 299,
+        "kind": "unknown"
+      }
+    ],
+    "subtotal_inr": 2199,
+    "prices_include_tax": false,
+    "tax_lines": [
+      {
+        "name": "CGST",
+        "rate_pct": 9,
+        "amount_inr": 197.91
+      },
+      {
+        "name": "SGST",
+        "rate_pct": 9,
+        "amount_inr": 197.91
+      }
+    ],
+    "round_off_inr": 0.18,
+    "grand_total_inr": 2595
+  },
+  "estimate": {
+    "kind": "estimate",
+    "doc_date": "2026-10-20",
+    "lines": [
+      {
+        "raw_text": "Engine oil",
+        "line_total_inr": 380
+      },
+      {
+        "raw_text": "Air filter",
+        "line_total_inr": 320
+      },
+      {
+        "raw_text": "Periodic service",
+        "line_total_inr": 400
+      }
+    ]
+  },
+  "approvals": [
+    {
+      "on": "2026-10-20",
+      "item": "rear brake shoes",
+      "job": "brake_shoe_replacement",
+      "how": "phone call with the advisor",
+      "amount_inr": 350
+    }
+  ]
+}

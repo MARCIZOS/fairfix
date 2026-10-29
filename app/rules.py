@@ -627,6 +627,10 @@ def check_bill_arithmetic(doc: Document, s: Settings = default_settings) -> list
     line_sum = sum(float(t) for t in totals if t is not None)
 
     sub = doc.subtotal_inr.value
+    incl = doc.prices_include_tax.value
+    tax_amounts = [t.amount_inr for t in doc.tax_lines]
+    tax_known = bool(tax_amounts) and all(a is not None for a in tax_amounts)
+    tax = sum(float(a) for a in tax_amounts if a is not None)
     if sub is None:
         out.append(_f("arithmetic", "not_applicable", "Not applicable: no subtotal printed", "subtotal missing"))
     elif not all_totals:
@@ -637,6 +641,11 @@ def check_bill_arithmetic(doc: Document, s: Settings = default_settings) -> list
         calc = f"sum of lines {inr(line_sum)}; printed subtotal {inr(sub)}"
         if abs(d) <= tol:
             out.append(_f("arithmetic", "supported", "Subtotal matches the lines", f"|Σ lines − subtotal| <= ₹{tol:g}", calculation=calc))
+        elif incl is True and tax_known and tax > 0 and abs(float(sub) + tax - line_sum) <= tol:
+            # Tax-inclusive lines with a printed taxable value: taxable value + tax = sum of lines.
+            out.append(_f("arithmetic", "supported", "Subtotal is the taxable value; with tax it matches the lines",
+                          f"prices include tax and |subtotal + tax − Σ lines| <= ₹{tol:g}",
+                          calculation=f"taxable {inr(sub)} + tax {inr(tax)} = {inr(float(sub) + tax)}; sum of lines {inr(line_sum)}"))
         else:
             out.append(_f("arithmetic", "needs_confirmation", f"Subtotal differs from the sum of lines by {inr(abs(d))}",
                           f"|Σ lines − subtotal| > ₹{tol:g}", calculation=calc,
@@ -647,18 +656,18 @@ def check_bill_arithmetic(doc: Document, s: Settings = default_settings) -> list
         out.append(_f("arithmetic", "unable_to_verify", "Grand total not readable", "grand_total missing",
                       next_step="Correct the total on the correction screen."))
         return out
-    base = float(sub) if sub is not None else (line_sum if all_totals else None)
+    if incl is True and all_totals:
+        base = line_sum          # tax-inclusive line amounts already contain the tax
+    else:
+        base = float(sub) if sub is not None else (line_sum if all_totals else None)
     if base is None:
         out.append(_f("arithmetic", "unable_to_verify", "Grand total not verified: some line amounts unreadable", "base unknown"))
         return out
     disc = float(doc.discount_inr.value or 0)
     when = doc.discount_applied.value
-    incl = doc.prices_include_tax.value
-    tax_amounts = [t.amount_inr for t in doc.tax_lines]
-    if any(a is None for a in tax_amounts):
+    if doc.tax_lines and not tax_known:
         out.append(_f("arithmetic", "unable_to_verify", "Grand total not verified: a tax amount is unreadable", "tax amount missing"))
         return out
-    tax = sum(float(a) for a in tax_amounts)
     if disc and incl is not True and tax and when is None:
         out.append(_f("arithmetic", "unable_to_verify",
                       "Grand total not verified: unclear whether the discount was applied before or after tax",

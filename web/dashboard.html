@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FairFix performance</title>
+<meta name="description" content="How accurately FairFix reads and checks service bills, measured on its evaluation set.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Kalam:wght@400;700&family=Noto+Sans+Devanagari:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+<header class="masthead">
+  <a class="brand" href="/" aria-label="FairFix home">FairFix<svg class="tick" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 11 L8 15.5 L17 4" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+  <nav class="nav" aria-label="Main">
+    <a href="/#check">Check a bill</a>
+    <a href="/dashboard.html" aria-current="page">How it performs</a>
+    <a href="/signin.html" class="nav-signin">Sign in</a>
+  </nav>
+</header>
+
+<main class="dash" id="dash">
+  <section class="dash-hero" aria-labelledby="dash-h">
+    <div class="dh-copy">
+      <p class="eyebrow">Evaluation report</p>
+      <h1 id="dash-h">Reads <span class="hl" id="hero-pct">–</span> of bill details correctly, and has <span class="hl ok" id="hero-zero">0</span> flags without evidence.</h1>
+      <p class="body" id="run-line">Loading the latest evaluation…</p>
+      <div class="actions">
+        <a class="btn primary" href="/#check">Check a bill</a>
+        <a class="btn quiet" href="#acc-h">See every check</a>
+      </div>
+      <p class="banner" id="honest" hidden></p>
+    </div>
+    <figure class="gate" id="gate" aria-labelledby="gate-cap">
+      <div class="stamp" id="stamp"><span class="s1">Release gate</span><span class="s2" id="gate-word">…</span><span class="s3" id="gate-date"></span></div>
+      <figcaption id="gate-cap">
+        <p><strong id="g-unsup">–</strong> lines flagged without evidence</p>
+        <p><strong id="g-acc">–</strong> messages with accusing wording</p>
+        <p class="hint">The gate fails if either is above zero. Both are checked on every bill, after the owner's corrections.</p>
+      </figcaption>
+    </figure>
+  </section>
+
+  <section class="kpis" aria-label="Headline figures">
+    <article class="kpi lead">
+      <h2>Fields read correctly from the photos</h2>
+      <p class="big"><span data-count id="k-fields">–</span><small>%</small></p>
+      <p class="sub" id="k-fields-sub"></p>
+    </article>
+    <article class="kpi">
+      <h2>Median time per bill</h2>
+      <p class="big"><span data-count id="k-lat">–</span><small> s</small></p>
+      <p class="sub" id="k-lat-sub"></p>
+    </article>
+    <article class="kpi">
+      <h2>Model calls answered first try</h2>
+      <p class="big"><span data-count id="k-calls">–</span><small id="k-calls-of"></small></p>
+      <p class="sub" id="k-calls-sub"></p>
+    </article>
+    <article class="kpi">
+      <h2>Personal details left in readings</h2>
+      <p class="big"><span data-count id="k-priv">–</span></p>
+      <p class="sub" id="k-priv-sub"></p>
+    </article>
+  </section>
+
+  <section class="card" aria-labelledby="acc-h">
+    <div class="card-head">
+      <div>
+        <h2 id="acc-h">Accuracy of each check</h2>
+        <p class="hint">Share of lines where FairFix gave the expected result. The owner reviews the reading before the checks run, so <em>after correction</em> is what a careful owner sees; <em>straight from the photo</em> skips that review.</p>
+      </div>
+      <ul class="legend" aria-label="Legend">
+        <li><span class="sw a"></span>After correction</li>
+        <li><span class="sw b"></span>Straight from the photo</li>
+      </ul>
+    </div>
+    <div class="meters" id="meters"></div>
+    <details class="tv"><summary>Show as a table</summary><div id="acc-table"></div></details>
+  </section>
+
+  <div class="two">
+    <section class="card" aria-labelledby="ba-h">
+      <h2 id="ba-h">What the fixes changed</h2>
+      <p class="hint">The same 12 bills, read before and after the prompt and rule fixes.</p>
+      <div id="dumbbells"></div>
+      <div class="deltas" id="deltas"></div>
+      <details class="tv"><summary>Show as a table</summary><div id="ba-table"></div></details>
+    </section>
+
+    <section class="card" aria-labelledby="calls-h">
+      <h2 id="calls-h">Model response time</h2>
+      <p class="hint" id="calls-hint">Median time per call to NVIDIA Nemotron on Nebius, by step. Timing and token counts only: the log holds no bill content.</p>
+      <div class="hbars" id="hbars"></div>
+      <div class="models" id="models"></div>
+      <details class="tv"><summary>Show as a table</summary><div id="calls-table"></div></details>
+    </section>
+  </div>
+
+  <section class="card" aria-labelledby="wrong-h">
+    <h2 id="wrong-h">What still goes wrong</h2>
+    <p class="hint">Every reading miss in the latest run. None of them reaches a result unchecked: the owner sees the reading first, and a hint is shown when a total looks wrong.</p>
+    <ol class="misses" id="misses"></ol>
+  </section>
+
+  <p class="foot hint">Figures come from <code>eval/results.md</code>, written by <code>python -m eval.run_eval</code>, and from the model-call log. Re-run the evaluation to refresh this page.</p>
+</main>
+
+<div class="tip" id="tip" role="status" hidden></div>
+<script src="dashboard.js"></script>
+</body>
+</html>

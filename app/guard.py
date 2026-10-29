@@ -30,6 +30,3 @@ def accusatory_terms(text: str) -> list[str]:
             found.append(stem)
     return found
 
-
-def is_neutral(text: str) -> bool:
-    return not accusatory_terms(text)

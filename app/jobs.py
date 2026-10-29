@@ -15,6 +15,7 @@ bills. They give a deterministic first pass before any model is asked.
 
 from __future__ import annotations
 
+import unicodedata
 from dataclasses import dataclass, field
 
 UNRECOGNISED = "unrecognised"
@@ -31,19 +32,19 @@ class Job:
 JOBS: tuple[Job, ...] = (
     # --- maintenance: scheduled replacements -------------------------------
     Job("engine_oil_replacement", "Engine oil replacement", "maintenance",
-        ("engine oil", "eng oil", "motor oil", "oil change", "10w30", "10w-30", "5w30", "5w-30", "0w20", "0w-20", "10w40", "10w-40")),
+        ("engine oil", "eng oil", "engn oil", "e/oil", "इंजन ऑयल", "इंजन तेल", "इंजिन ऑयल", "motor oil", "oil change", "10w30", "10w-30", "5w30", "5w-30", "0w20", "0w-20", "10w40", "10w-40")),
     Job("oil_filter_replacement", "Oil filter replacement", "maintenance",
-        ("oil filter", "oil fltr", "oil cartridge")),
+        ("oil filter", "oil fltr", "oil cartridge", "ऑयल फिल्टर")),
     Job("air_filter_replacement", "Air filter replacement", "maintenance",
-        ("air filter", "air fltr", "air clnr", "air cleaner", "air element", "air clnr element")),
+        ("air filter", "air fltr", "air clnr", "एयर फिल्टर", "एअर फिल्टर", "air cleaner", "air element", "air clnr element")),
     Job("fuel_filter_replacement", "Fuel filter replacement", "maintenance",
         ("fuel filter", "fuel fltr", "diesel filter")),
     Job("cabin_filter_replacement", "Cabin / AC filter replacement", "maintenance",
         ("cabin filter", "ac filter", "pollen filter", "a/c filter")),
     Job("spark_plug_replacement", "Spark plug replacement", "maintenance",
-        ("spark plug", "sparkplug", "plug spark")),
+        ("spark plug", "sparkplug", "plug spark", "spk plg", "spk plug", "s/plug", "स्पार्क प्लग")),
     Job("coolant_replacement", "Coolant replacement", "maintenance",
-        ("coolant", "antifreeze", "radiator fluid")),
+        ("coolant", "antifreeze", "radiator fluid", "कूलेंट", "कूलैंट")),
     Job("brake_fluid_replacement", "Brake fluid replacement", "maintenance",
         ("brake fluid", "dot 3", "dot3", "dot 4", "dot4")),
     Job("transmission_oil_replacement", "Transmission / gear oil replacement", "maintenance",
@@ -59,13 +60,13 @@ JOBS: tuple[Job, ...] = (
     Job("throttle_body_cleaning", "Throttle body cleaning", "maintenance",
         ("throttle body",)),
     Job("periodic_service_labour", "Periodic service labour", "labour",
-        ("periodic service", "periodic maintenance", "paid service", "free service", "general service", "service charge", "pms", "labour charge", "labor charge")),
+        ("periodic service", "periodic maintenance", "paid service", "free service", "general service", "service charge", "pms", "labour charge", "labor charge", "gen srvc", "general srvc", "srvc lbr", "service lbr", "सर्विस चार्ज", "सर्विस लेबर", "सर्विसिंग")),
 
     # --- wear_repair: replaced on condition ---------------------------------
     Job("brake_pad_replacement", "Brake pad replacement", "wear_repair",
-        ("brake pad", "disc pad", "brake pads")),
+        ("brake pad", "disc pad", "brake pads", "ब्रेक पैड")),
     Job("brake_shoe_replacement", "Brake shoe replacement", "wear_repair",
-        ("brake shoe", "brake shoes", "shoe brake")),
+        ("brake shoe", "brake shoes", "shoe brake", "ब्रेक शू")),
     Job("brake_disc_replacement", "Brake disc / rotor replacement", "wear_repair",
         ("brake disc", "rotor", "disc rotor")),
     Job("brake_drum_replacement", "Brake drum replacement", "wear_repair",
@@ -115,7 +116,7 @@ JOBS: tuple[Job, ...] = (
     Job("fuse_replacement", "Fuse replacement", "misc",
         ("fuse",)),
     Job("washing", "Vehicle wash", "misc",
-        ("wash", "foam wash", "water wash")),
+        ("wash", "foam wash", "water wash", "wsh", "धुलाई", "वॉश")),
     Job("consumables_misc", "Shop consumables (cotton waste, grease, cleaner)", "misc",
         ("consumable", "cotton waste", "grease", "shop supplies", "sundries", "cleaner")),
 )
@@ -127,6 +128,14 @@ def get_job(job_id: str) -> Job | None:
     return JOBS_BY_ID.get(job_id)
 
 
+def _fold(text: str) -> str:
+    """Lower-case, hyphens to spaces, and Devanagari nukta removed, so that
+    'फ़िल्टर' and 'फिल्टर' (both common on bills) match the same alias."""
+    t = unicodedata.normalize("NFD", text or "").replace("\u093c", "")
+    t = unicodedata.normalize("NFC", t)
+    return " ".join(t.lower().replace("-", " ").split())
+
+
 def alias_match(raw_text: str) -> str | None:
     """Deterministic first-pass mapping from bill text to a job id.
 
@@ -134,11 +143,11 @@ def alias_match(raw_text: str) -> str | None:
     unmatched text returns None so the caller can ask the model or mark the
     line unrecognised. Longest alias wins ties within a single job.
     """
-    text = " ".join(raw_text.lower().replace("-", " ").split())
+    text = _fold(raw_text)
     hits: dict[str, int] = {}
     for job in JOBS:
         for alias in job.aliases:
-            a = " ".join(alias.lower().replace("-", " ").split())
+            a = _fold(alias)
             if a and a in text:
                 hits[job.id] = max(hits.get(job.id, 0), len(a))
     if not hits:
@@ -153,3 +162,29 @@ def alias_match(raw_text: str) -> str | None:
     if len(runners) > 1 and runners[1] >= best - 2:
         return None
     return winners[0]
+
+
+# Line type to assume when the bill doesn't say (bills rarely do). Only jobs with a buyable
+# item get "part"/"consumable", which is what lets the price search compare them; services
+# such as washing or alignment stay "unknown" and are never price-compared.
+_CONSUMABLE_JOBS = {"engine_oil_replacement", "brake_fluid_replacement", "coolant_replacement",
+                    "transmission_oil_replacement", "engine_flush", "radiator_flush", "engine_oil_additive",
+                    "fuel_additive", "washer_fluid"}
+_PART_JOBS = {"oil_filter_replacement", "air_filter_replacement", "fuel_filter_replacement", "cabin_filter_replacement",
+              "spark_plug_replacement", "drive_belt_replacement", "timing_belt_replacement", "battery_replacement",
+              "bearing_replacement", "brake_disc_replacement", "brake_drum_replacement", "brake_pad_replacement",
+              "brake_shoe_replacement", "chain_sprocket_replacement", "clutch_plate_replacement", "tyre_replacement",
+              "wiper_blade_replacement", "bulb_replacement", "fuse_replacement"}
+
+
+def inferred_kind(job_id: str | None) -> str:
+    job = get_job(job_id or "")
+    if not job:
+        return "unknown"
+    if job.kind == "labour":
+        return "labour"
+    if job.id in _CONSUMABLE_JOBS:
+        return "consumable"
+    if job.id in _PART_JOBS:
+        return "part"
+    return "unknown"

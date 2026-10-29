@@ -99,20 +99,62 @@ def _complete(step: str, model: str, messages: list[dict], json_mode: bool, atte
     kw: dict[str, Any] = dict(model=model, messages=messages, temperature=temperature, max_tokens=max_tokens)
     if json_mode:
         kw["response_format"] = {"type": "json_object"}
+    resp = _create(step, model, kw, attempt)
+    choice = resp.choices[0] if resp.choices else None
+    content = (choice.message.content or "") if choice else ""
+    if not _THINK.sub("", content).strip():
+        # Reasoning models can spend the whole budget thinking and return no answer.
+        finish = getattr(choice, "finish_reason", None) if choice else None
+        log_call(step, model, "empty", 0, attempt)
+        raise ModelError("empty_output", step,
+                         f"finish_reason={finish}; the model returned no answer"
+                         + (" (it ran out of tokens, probably while reasoning)" if finish == "length" else ""))
+    return content
+
+
+# Nemotron models think before answering unless told not to. FairFix's calls are
+# extraction and rewriting, so thinking is turned off (DISABLE_THINKING=1). If the
+# endpoint rejects the setting, it is dropped for the rest of the process.
+_thinking_kwargs_ok = True
+
+
+# Provider "busy" answers: rate limited (429), server errors (5xx) and overloaded (529).
+# These are temporary, so the same request is retried after a short wait.
+BUSY_STATUSES = {429, 500, 502, 503, 504, 529}
+BUSY_WAITS_S = (2.0, 5.0)   # two retries: after 2 s, then after 5 s
+
+
+def _create(step: str, model: str, kw: dict[str, Any], attempt: int, busy_try: int = 0):
+    global _thinking_kwargs_ok
+    send_kwargs = settings.disable_thinking and _thinking_kwargs_ok
+    if send_kwargs:
+        kw = {**kw, "extra_body": {"chat_template_kwargs": {"enable_thinking": False}}}
     t0 = time.perf_counter()
     try:
         resp = client().chat.completions.create(**kw)
     except ModelError:
         raise
     except Exception as exc:  # openai.APITimeoutError, APIStatusError, connection errors ...
+        status = getattr(exc, "status_code", None)
+        if send_kwargs and status in (400, 422):
+            _thinking_kwargs_ok = False
+            log_call(step, model, "thinking_flag_rejected", (time.perf_counter() - t0) * 1000, attempt)
+            kw = {k: v for k, v in kw.items() if k != "extra_body"}
+            return _create(step, model, kw, attempt, busy_try)
+        if status in BUSY_STATUSES and busy_try < len(BUSY_WAITS_S):
+            log_call(step, model, f"busy_{status}", (time.perf_counter() - t0) * 1000, attempt)
+            time.sleep(BUSY_WAITS_S[busy_try])
+            kw = {k: v for k, v in kw.items() if k != "extra_body"}
+            return _create(step, model, kw, attempt, busy_try + 1)
         kind = "timeout" if "timeout" in type(exc).__name__.lower() else "provider_error"
         log_call(step, model, kind, (time.perf_counter() - t0) * 1000, attempt)
-        raise ModelError(kind, step, type(exc).__name__) from None
+        detail = type(exc).__name__ + (f" {status}" if status else "")
+        raise ModelError(kind, step, detail) from None
     ms = (time.perf_counter() - t0) * 1000
     usage = getattr(resp, "usage", None)
     log_call(step, model, "ok", ms, attempt,
              getattr(usage, "prompt_tokens", None), getattr(usage, "completion_tokens", None))
-    return (resp.choices[0].message.content or "") if resp.choices else ""
+    return resp
 
 
 def call_json(step: str, model: str, messages: list[dict], schema: type[T], *, max_tokens: int = 4000) -> T:
@@ -120,7 +162,14 @@ def call_json(step: str, model: str, messages: list[dict], schema: type[T], *, m
     last_err = ""
     msgs = list(messages)
     for attempt in (1, 2):
-        out = _complete(step, model, msgs, json_mode=True, attempt=attempt, max_tokens=max_tokens)
+        try:
+            out = _complete(step, model, msgs, json_mode=True, attempt=attempt,
+                            max_tokens=max_tokens if attempt == 1 else max_tokens * 2)
+        except ModelError as exc:
+            if exc.kind != "empty_output" or attempt == 2:
+                raise
+            last_err = str(exc)
+            continue  # retry once with double the token budget
         try:
             return schema.model_validate(_json_from(out))
         except (ValueError, ValidationError) as exc:

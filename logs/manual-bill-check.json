@@ -1,0 +1,1098 @@
+{
+  "lines": [
+    {
+      "index": 0,
+      "item": {
+        "raw_text": {
+          "value": "ENGINE OIL 10W30 0.8L",
+          "origin": "extracted",
+          "extracted_value": "ENGINE OIL 10W30 0.8L"
+        },
+        "qty": {
+          "value": 1.0,
+          "origin": "extracted",
+          "extracted_value": 1.0
+        },
+        "unit_price_inr": {
+          "value": 380.0,
+          "origin": "extracted",
+          "extracted_value": 380.0
+        },
+        "line_total_inr": {
+          "value": 380.0,
+          "origin": "extracted",
+          "extracted_value": 380.0
+        },
+        "part_number": {
+          "value": null,
+          "origin": "extracted",
+          "extracted_value": null
+        },
+        "gst_included": {
+          "value": null,
+          "origin": "extracted",
+          "extracted_value": null
+        },
+        "kind": "part",
+        "grade": "genuine",
+        "job": "engine_oil_replacement",
+        "job_confidence": 1.0,
+        "job_source": "alias"
+      },
+      "job_label": "Engine oil replacement",
+      "findings": [
+        {
+          "check": "schedule",
+          "category": "supported",
+          "label": "Matches schedule (due by time)",
+          "rule": "whichever_first: due if any limit reached (early window 10%)",
+          "inputs": {
+            "job": "engine_oil_replacement",
+            "interval_km": 6000,
+            "interval_months": 6,
+            "condition": "whichever_first",
+            "action": "replace",
+            "odometer_km": 9800.0,
+            "bill_date": "2026-10-20",
+            "history": "replaced",
+            "last_km": 5000.0,
+            "last_date": "2026-04-15",
+            "early_window_pct": 10.0
+          },
+          "evidence": [
+            {
+              "kind": "schedule",
+              "applies_to": {},
+              "data": {
+                "job": "engine_oil_replacement",
+                "interval_km": 6000,
+                "interval_months": 6,
+                "condition": "whichever_first",
+                "action": "replace"
+              },
+              "source_url": "https://example.invalid/fictional-manual#schedule",
+              "excerpt": "FICTIONAL: Engine oil - replace every 6,000 km or 6 months, whichever comes first.",
+              "checked_on": "2026-10-28",
+              "source_rank": 1,
+              "sufficient": true,
+              "verified_by_human": true,
+              "from_cache": false
+            }
+          ],
+          "uncertainty": null,
+          "next_step": "",
+          "verify_url": null,
+          "calculation": "km since last replacement: 9,800 \u2212 5,000 = 4,800 (interval 6,000 km); months since last replacement: 6.2 (interval 6 months)"
+        },
+        {
+          "check": "price",
+          "category": "unable_to_verify",
+          "label": "Unable to verify price fairly",
+          "rule": "need >= 3 equivalent comparables from >= 2 sellers",
+          "inputs": {
+            "job": "engine_oil_replacement",
+            "line_kind": "part",
+            "grade": "genuine",
+            "part_number": null,
+            "unit_price_inr": 380.0,
+            "threshold_pct": 15.0,
+            "min_comparables": 3,
+            "min_sellers": 2,
+            "line_price_includes_gst": false,
+            "comparables_used": 0,
+            "distinct_sellers": 0,
+            "excluded": {}
+          },
+          "evidence": [],
+          "uncertainty": "Found 0 equivalent listing(s) from 0 seller(s).",
+          "next_step": "Ask for the part number and MRP printed on the part's packaging.",
+          "verify_url": null,
+          "calculation": null
+        },
+        {
+          "check": "coverage",
+          "category": "not_applicable",
+          "label": "Not applicable: excluded under the warranty terms",
+          "rule": "job or job kind in warranty exclusions",
+          "inputs": {
+            "job": "engine_oil_replacement",
+            "job_kind": "maintenance",
+            "warranty_years": 3,
+            "warranty_km": 30000,
+            "starts_from": "purchase",
+            "odometer_km": 9800.0,
+            "purchase_date": "2025-08-20",
+            "registration_date": null,
+            "bill_date": "2026-10-20"
+          },
+          "evidence": [
+            {
+              "kind": "warranty",
+              "applies_to": {},
+              "data": {
+                "years": 3,
+                "km": 30000,
+                "starts_from": "purchase",
+                "excluded_job_kinds": [
+                  "maintenance",
+                  "misc",
+                  "add_on",
+                  "labour"
+                ],
+                "excluded_jobs": [
+                  "brake_pad_replacement",
+                  "brake_shoe_replacement",
+                  "tyre_replacement",
+                  "wiper_blade_replacement",
+                  "clutch_plate_replacement",
+                  "battery_replacement",
+                  "chain_sprocket_replacement"
+                ]
+              },
+              "source_url": "https://example.invalid/fictional-warranty",
+              "excerpt": "FICTIONAL: 3 years or 30,000 km from purchase, whichever is earlier. Wear and maintenance items excluded.",
+              "checked_on": "2026-10-28",
+              "source_rank": 1,
+              "sufficient": true,
+              "verified_by_human": true,
+              "from_cache": false
+            }
+          ],
+          "uncertainty": "No matching recall found in the sources checked (Fictional sample recall list).",
+          "next_step": "",
+          "verify_url": null,
+          "calculation": null
+        },
+        {
+          "check": "authorization",
+          "category": "supported",
+          "label": "On the estimate",
+          "rule": "item matches an estimate line",
+          "inputs": {
+            "bill_amount": 380.0,
+            "estimate_amount": 380.0,
+            "tolerance_pct": 10.0
+          },
+          "evidence": [],
+          "uncertainty": null,
+          "next_step": "",
+          "verify_url": null,
+          "calculation": null
+        },
+        {
+          "check": "arithmetic",
+          "category": "supported",
+          "label": "Line arithmetic adds up",
+          "rule": "|qty \u00d7 unit \u2212 total| <= \u20b91",
+          "inputs": {
+            "qty": 1.0,
+            "unit": 380.0,
+            "total": 380.0
+          },
+          "evidence": [],
+          "uncertainty": null,
+          "next_step": "",
+          "verify_url": null,
+          "calculation": "1 \u00d7 \u20b9380 = \u20b9380; printed \u20b9380"
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "item": {
+        "raw_text": {
+          "value": "AIR CLNR ELEMENT",
+          "origin": "extracted",
+          "extracted_value": "AIR CLNR ELEMENT"
+        },
+        "qty": {
+          "value": 1.0,
+          "origin": "extracted",
+          "extracted_value": 1.0
+        },
+        "unit_price_inr": {
+          "value": 320.0,
+          "origin": "extracted",
+          "extracted_value": 320.0
+        },
+        "line_total_inr": {
+          "value": 320.0,
+          "origin": "extracted",
+          "extracted_value": 320.0
+        },
+        "part_number": {
+          "value": null,
+          "origin": "extracted",
+          "extracted_value": null
+        },
+        "gst_included": {
+          "value": null,
+          "origin": "extracted",
+          "extracted_value": null
+        },
+        "kind": "part",
+        "grade": "genuine",
+        "job": "air_filter_replacement",
+        "job_confidence": 1.0,
+        "job_source": "alias"
+      },
+      "job_label": "Air filter replacement",
+      "findings": [
+        {
+          "check": "schedule",
+          "category": "supported",
+          "label": "Matches schedule (due by time)",
+          "rule": "whichever_first: due if any limit reached (early window 10%)",
+          "inputs": {
+            "job": "air_filter_replacement",
+            "interval_km": 12000,
+            "interval_months": 12,
+            "condition": "whichever_first",
+            "action": "replace",
+            "odometer_km": 9800.0,
+            "bill_date": "2026-10-20",
+            "history": "never",
+            "last_km": 0.0,
+            "last_date": "2025-08-20",
+            "early_window_pct": 10.0
+          },
+          "evidence": [
+            {
+              "kind": "schedule",
+              "applies_to": {},
+              "data": {
+                "job": "air_filter_replacement",
+                "interval_km": 12000,
+                "interval_months": 12,
+                "condition": "whichever_first",
+                "action": "replace"
+              },
+              "source_url": "https://example.invalid/fictional-manual#schedule",
+              "excerpt": "FICTIONAL: Air cleaner element - replace every 12,000 km or 12 months, whichever comes first.",
+              "checked_on": "2026-10-28",
+              "source_rank": 1,
+              "sufficient": true,
+              "verified_by_human": true,
+              "from_cache": false
+            }
+          ],
+          "uncertainty": null,
+          "next_step": "",
+          "verify_url": null,
+          "calculation": "km since last replacement: 9,800 \u2212 0 = 9,800 (interval 12,000 km); months since last replacement: 14.0 (interval 12 months)"
+        },
+        {
+          "check": "price",
+          "category": "unable_to_verify",
+          "label": "Unable to verify price fairly",
+          "rule": "need >= 3 equivalent comparables from >= 2 sellers",
+          "inputs": {
+            "job": "air_filter_replacement",
+            "line_kind": "part",
+            "grade": "genuine",
+            "part_number": null,
+            "unit_price_inr": 320.0,
+            "threshold_pct": 15.0,
+            "min_comparables": 3,
+            "min_sellers": 2,
+            "line_price_includes_gst": false,
+            "comparables_used": 0,
+            "distinct_sellers": 0,
+            "excluded": {}
+          },
+          "evidence": [],
+          "uncertainty": "Found 0 equivalent listing(s) from 0 seller(s).",
+          "next_step": "Ask for the part number and MRP printed on the part's packaging.",
+          "verify_url": null,
+          "calculation": null
+        },
+        {
+          "check": "coverage",
+          "category": "not_applicable",
+          "label": "Not applicable: excluded under the warranty terms",
+          "rule": "job or job kind in warranty exclusions",
+          "inputs": {
+            "job": "air_filter_replacement",
+            "job_kind": "maintenance",
+            "warranty_years": 3,
+            "warranty_km": 30000,
+            "starts_from": "purchase",
+            "odometer_km": 9800.0,
+            "purchase_date": "2025-08-20",
+            "registration_date": null,
+            "bill_date": "2026-10-20"
+          },
+          "evidence": [
+            {
+              "kind": "warranty",
+              "applies_to": {},
+              "data": {
+                "years": 3,
+                "km": 30000,
+                "starts_from": "purchase",
+                "excluded_job_kinds": [
+                  "maintenance",
+                  "misc",
+                  "add_on",
+                  "labour"
+                ],
+                "excluded_jobs": [
+                  "brake_pad_replacement",
+                  "brake_shoe_replacement",
+                  "tyre_replacement",
+                  "wiper_blade_replacement",
+                  "clutch_plate_replacement",
+                  "battery_replacement",
+                  "chain_sprocket_replacement"
+                ]
+              },
+              "source_url": "https://example.invalid/fictional-warranty",
+              "excerpt": "FICTIONAL: 3 years or 30,000 km from purchase, whichever is earlier. Wear and maintenance items excluded.",
+              "checked_on": "2026-10-28",
+              "source_rank": 1,
+              "sufficient": true,
+              "verified_by_human": true,
+              "from_cache": false
+            }
+          ],
+          "uncertainty": "No matching recall found in the sources checked (Fictional sample recall list).",
+          "next_step": "",
+          "verify_url": null,
+          "calculation": null
+        },
+        {
+          "check": "authorization",
+          "category": "supported",
+          "label": "On the estimate",
+          "rule": "item matches an estimate line",
+          "inputs": {
+            "bill_amount": 320.0,
+            "estimate_amount": 320.0,
+            "tolerance_pct": 10.0
+          },
+          "evidence": [],
+          "uncertainty": null,
+          "next_step": "",
+          "verify_url": null,
+          "calculation": null
+        },
+        {
+          "check": "arithmetic",
+          "category": "supported",
+          "label": "Line arithmetic adds up",
+          "rule": "|qty \u00d7 unit \u2212 total| <= \u20b91",
+          "inputs": {
+            "qty": 1.0,
+            "unit": 320.0,
+            "total": 320.0
+          },
+          "evidence": [],
+          "uncertainty": null,
+          "next_step": "",
+          "verify_url": null,
+          "calculation": "1 \u00d7 \u20b9320 = \u20b9320; printed \u20b9320"
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "item": {
+        "raw_text": {
+          "value": "ENG FLUSH",
+          "origin": "extracted",
+          "extracted_value": "ENG FLUSH"
+        },
+        "qty": {
+          "value": 1.0,
+          "origin": "extracted",
+          "extracted_value": 1.0
+        },
+        "unit_price_inr": {
+          "value": 450.0,
+          "origin": "extracted",
+          "extracted_value": 450.0
+        },
+        "line_total_inr": {
+          "value": 450.0,
+          "origin": "extracted",
+          "extracted_value": 450.0
+        },
+        "part_number": {
+          "value": null,
+          "origin": "extracted",
+          "extracted_value": null
+        },
+        "gst_included": {
+          "value": null,
+          "origin": "extracted",
+          "extracted_value": null
+        },
+        "kind": "part",
+        "grade": "unknown",
+        "job": "engine_flush",
+        "job_confidence": 1.0,
+        "job_source": "alias"
+      },
+      "job_label": "Engine flush",
+      "findings": [
+        {
+          "check": "schedule",
+          "category": "needs_confirmation",
+          "label": "Not listed in the official service schedule: ask why it's recommended",
+          "rule": "job.kind == 'add_on' and job not in complete official schedule",
+          "inputs": {
+            "job": "engine_flush",
+            "schedule_complete": true
+          },
+          "evidence": [
+            {
+              "kind": "schedule",
+              "applies_to": {},
+              "data": {
+                "note": "The official schedule in the fact pack lists: Air filter replacement, Brake fluid replacement, Drive / V-belt replacement, Engine oil replacement, Spark plug replacement. Engine flush is not among them."
+              },
+              "source_url": "https://example.invalid/fictional-manual#schedule",
+              "excerpt": "",
+              "checked_on": "2026-10-28",
+              "source_rank": 1,
+              "sufficient": true,
+              "verified_by_human": true,
+              "from_cache": false
+            }
+          ],
+          "uncertainty": "It may still be optional or recommended for a specific reason; the schedule just doesn't list it.",
+          "next_step": "Ask what problem this treatment addresses and whether it's optional.",
+          "verify_url": null,
+          "calculation": null
+        },
+        {
+          "check": "price",
+          "category": "unable_to_verify",
+          "label": "Unable to verify price fairly",
+          "rule": "no part number and unknown grade -> no equivalent comparables possible",
+          "inputs": {
+            "job": "engine_flush",
+            "line_kind": "part",
+            "grade": "unknown",
+            "part_number": null,
+            "unit_price_inr": 450.0,
+            "threshold_pct": 15.0,
+            "min_comparables": 3,
+            "min_sellers": 2,
+            "line_price_includes_gst": false
+          },
+          "evidence": [],
+          "uncertainty": "Without a part number or the part's grade (genuine, OEM, aftermarket), listings can't be matched like for like.",
+          "next_step": "Ask for the part number, or mark the grade on the correction screen.",
+          "verify_url": null,
+          "calculation": null
+        },
+        {
+          "check": "coverage",
+          "category": "not_applicable",
+          "label": "Not applicable: excluded under the warranty terms",
+          "rule": "job or job kind in warranty exclusions",
+          "inputs": {
+            "job": "engine_flush",
+            "job_kind": "add_on",
+            "warranty_years": 3,
+            "warranty_km": 30000,
+            "starts_from": "purchase",
+            "odometer_km": 9800.0,
+            "purchase_date": "2025-08-20",
+            "registration_date": null,
+            "bill_date": "2026-10-20"
+          },
+          "evidence": [
+            {
+              "kind": "warranty",
+              "applies_to": {},
+              "data": {
+                "years": 3,
+                "km": 30000,
+                "starts_from": "purchase",
+                "excluded_job_kinds": [
+                  "maintenance",
+                  "misc",
+                  "add_on",
+                  "labour"
+                ],
+                "excluded_jobs": [
+                  "brake_pad_replacement",
+                  "brake_shoe_replacement",
+                  "tyre_replacement",
+                  "wiper_blade_replacement",
+                  "clutch_plate_replacement",
+                  "battery_replacement",
+                  "chain_sprocket_replacement"
+                ]
+              },
+              "source_url": "https://example.invalid/fictional-warranty",
+              "excerpt": "FICTIONAL: 3 years or 30,000 km from purchase, whichever is earlier. Wear and maintenance items excluded.",
+              "checked_on": "2026-10-28",
+              "source_rank": 1,
+              "sufficient": true,
+              "verified_by_human": true,
+              "from_cache": false
+            }
+          ],
+          "uncertainty": "No matching recall found in the sources checked (Fictional sample recall list).",
+          "next_step": "",
+          "verify_url": null,
+          "calculation": null
+        },
+        {
+          "check": "authorization",
+          "category": "needs_confirmation",
+          "label": "Not present in the uploaded estimate: confirm authorization",
+          "rule": "no matching estimate line or recorded approval",
+          "inputs": {
+            "bill_amount": 450.0
+          },
+          "evidence": [],
+          "uncertainty": "It may have been approved verbally, in a revised estimate or as an urgent repair.",
+          "next_step": "If you approved it later, add a note; otherwise ask when it was approved.",
+          "verify_url": null,
+          "calculation": null
+        },
+        {
+          "check": "arithmetic",
+          "category": "supported",
+          "label": "Line arithmetic adds up",
+          "rule": "|qty \u00d7 unit \u2212 total| <= \u20b91",
+          "inputs": {
+            "qty": 1.0,
+            "unit": 450.0,
+            "total": 450.0
+          },
+          "evidence": [],
+          "uncertainty": null,
+          "next_step": "",
+          "verify_url": null,
+          "calculation": "1 \u00d7 \u20b9450 = \u20b9450; printed \u20b9450"
+        }
+      ]
+    },
+    {
+      "index": 3,
+      "item": {
+        "raw_text": {
+          "value": "BRAKE SHOE SET (REAR)",
+          "origin": "extracted",
+          "extracted_value": "BRAKE SHOE SET (REAR)"
+        },
+        "qty": {
+          "value": 1.0,
+          "origin": "extracted",
+          "extracted_value": 1.0
+        },
+        "unit_price_inr": {
+          "value": 350.0,
+          "origin": "extracted",
+          "extracted_value": 350.0
+        },
+        "line_total_inr": {
+          "value": 350.0,
+          "origin": "extracted",
+          "extracted_value": 350.0
+        },
+        "part_number": {
+          "value": null,
+          "origin": "extracted",
+          "extracted_value": null
+        },
+        "gst_included": {
+          "value": null,
+          "origin": "extracted",
+          "extracted_value": null
+        },
+        "kind": "part",
+        "grade": "genuine",
+        "job": "brake_shoe_replacement",
+        "job_confidence": 1.0,
+        "job_source": "alias"
+      },
+      "job_label": "Brake shoe replacement",
+      "findings": [
+        {
+          "check": "schedule",
+          "category": "not_applicable",
+          "label": "Not applicable: replaced on condition after inspection, not on a fixed schedule",
+          "rule": "job.kind == 'wear_repair'",
+          "inputs": {},
+          "evidence": [],
+          "uncertainty": null,
+          "next_step": "If you weren't shown the worn part or told the inspection finding, you can ask for it.",
+          "verify_url": null,
+          "calculation": null
+        },
+        {
+          "check": "price",
+          "category": "unable_to_verify",
+          "label": "Unable to verify price fairly",
+          "rule": "need >= 3 equivalent comparables from >= 2 sellers",
+          "inputs": {
+            "job": "brake_shoe_replacement",
+            "line_kind": "part",
+            "grade": "genuine",
+            "part_number": null,
+            "unit_price_inr": 350.0,
+            "threshold_pct": 15.0,
+            "min_comparables": 3,
+            "min_sellers": 2,
+            "line_price_includes_gst": false,
+            "comparables_used": 0,
+            "distinct_sellers": 0,
+            "excluded": {}
+          },
+          "evidence": [],
+          "uncertainty": "Found 0 equivalent listing(s) from 0 seller(s).",
+          "next_step": "Ask for the part number and MRP printed on the part's packaging.",
+          "verify_url": null,
+          "calculation": null
+        },
+        {
+          "check": "coverage",
+          "category": "not_applicable",
+          "label": "Not applicable: excluded under the warranty terms",
+          "rule": "job or job kind in warranty exclusions",
+          "inputs": {
+            "job": "brake_shoe_replacement",
+            "job_kind": "wear_repair",
+            "warranty_years": 3,
+            "warranty_km": 30000,
+            "starts_from": "purchase",
+            "odometer_km": 9800.0,
+            "purchase_date": "2025-08-20",
+            "registration_date": null,
+            "bill_date": "2026-10-20"
+          },
+          "evidence": [
+            {
+              "kind": "warranty",
+              "applies_to": {},
+              "data": {
+                "years": 3,
+                "km": 30000,
+                "starts_from": "purchase",
+                "excluded_job_kinds": [
+                  "maintenance",
+                  "misc",
+                  "add_on",
+                  "labour"
+                ],
+                "excluded_jobs": [
+                  "brake_pad_replacement",
+                  "brake_shoe_replacement",
+                  "tyre_replacement",
+                  "wiper_blade_replacement",
+                  "clutch_plate_replacement",
+                  "battery_replacement",
+                  "chain_sprocket_replacement"
+                ]
+              },
+              "source_url": "https://example.invalid/fictional-warranty",
+              "excerpt": "FICTIONAL: 3 years or 30,000 km from purchase, whichever is earlier. Wear and maintenance items excluded.",
+              "checked_on": "2026-10-28",
+              "source_rank": 1,
+              "sufficient": true,
+              "verified_by_human": true,
+              "from_cache": false
+            }
+          ],
+          "uncertainty": "No matching recall found in the sources checked (Fictional sample recall list).",
+          "next_step": "",
+          "verify_url": null,
+          "calculation": null
+        },
+        {
+          "check": "authorization",
+          "category": "supported",
+          "label": "Approved later (recorded by you)",
+          "rule": "item matches a recorded approval note",
+          "inputs": {
+            "approval": {
+              "on": "2026-10-20",
+              "item": "rear brake shoes",
+              "job": "brake_shoe_replacement",
+              "how": "phone call with the advisor",
+              "amount_inr": 350.0
+            },
+            "bill_amount": 350.0
+          },
+          "evidence": [],
+          "uncertainty": "Based on your own note of the approval.",
+          "next_step": "",
+          "verify_url": null,
+          "calculation": null
+        },
+        {
+          "check": "arithmetic",
+          "category": "supported",
+          "label": "Line arithmetic adds up",
+          "rule": "|qty \u00d7 unit \u2212 total| <= \u20b91",
+          "inputs": {
+            "qty": 1.0,
+            "unit": 350.0,
+            "total": 350.0
+          },
+          "evidence": [],
+          "uncertainty": null,
+          "next_step": "",
+          "verify_url": null,
+          "calculation": "1 \u00d7 \u20b9350 = \u20b9350; printed \u20b9350"
+        }
+      ]
+    },
+    {
+      "index": 4,
+      "item": {
+        "raw_text": {
+          "value": "PERIODIC SERVICE LABOUR",
+          "origin": "extracted",
+          "extracted_value": "PERIODIC SERVICE LABOUR"
+        },
+        "qty": {
+          "value": 1.0,
+          "origin": "extracted",
+          "extracted_value": 1.0
+        },
+        "unit_price_inr": {
+          "value": 400.0,
+          "origin": "extracted",
+          "extracted_value": 400.0
+        },
+        "line_total_inr": {
+          "value": 400.0,
+          "origin": "extracted",
+          "extracted_value": 400.0
+        },
+        "part_number": {
+          "value": null,
+          "origin": "extracted",
+          "extracted_value": null
+        },
+        "gst_included": {
+          "value": null,
+          "origin": "extracted",
+          "extracted_value": null
+        },
+        "kind": "labour",
+        "grade": "unknown",
+        "job": "periodic_service_labour",
+        "job_confidence": 1.0,
+        "job_source": "alias"
+      },
+      "job_label": "Periodic service labour",
+      "findings": [
+        {
+          "check": "schedule",
+          "category": "not_applicable",
+          "label": "Not applicable: labour charge",
+          "rule": "job.kind == 'labour'",
+          "inputs": {},
+          "evidence": [],
+          "uncertainty": null,
+          "next_step": "",
+          "verify_url": null,
+          "calculation": null
+        },
+        {
+          "check": "price",
+          "category": "unable_to_verify",
+          "label": "Unable to verify price fairly",
+          "rule": "no official labour rate for this job",
+          "inputs": {
+            "job": "periodic_service_labour",
+            "line_kind": "labour",
+            "grade": "unknown",
+            "part_number": null,
+            "unit_price_inr": 400.0,
+            "threshold_pct": 15.0,
+            "min_comparables": 3,
+            "min_sellers": 2
+          },
+          "evidence": [],
+          "uncertainty": "No published labour rate for this job is in the fact pack.",
+          "next_step": "Ask the advisor for the standard labour time and rate for this job.",
+          "verify_url": null,
+          "calculation": null
+        },
+        {
+          "check": "coverage",
+          "category": "not_applicable",
+          "label": "Not applicable: excluded under the warranty terms",
+          "rule": "job or job kind in warranty exclusions",
+          "inputs": {
+            "job": "periodic_service_labour",
+            "job_kind": "labour",
+            "warranty_years": 3,
+            "warranty_km": 30000,
+            "starts_from": "purchase",
+            "odometer_km": 9800.0,
+            "purchase_date": "2025-08-20",
+            "registration_date": null,
+            "bill_date": "2026-10-20"
+          },
+          "evidence": [
+            {
+              "kind": "warranty",
+              "applies_to": {},
+              "data": {
+                "years": 3,
+                "km": 30000,
+                "starts_from": "purchase",
+                "excluded_job_kinds": [
+                  "maintenance",
+                  "misc",
+                  "add_on",
+                  "labour"
+                ],
+                "excluded_jobs": [
+                  "brake_pad_replacement",
+                  "brake_shoe_replacement",
+                  "tyre_replacement",
+                  "wiper_blade_replacement",
+                  "clutch_plate_replacement",
+                  "battery_replacement",
+                  "chain_sprocket_replacement"
+                ]
+              },
+              "source_url": "https://example.invalid/fictional-warranty",
+              "excerpt": "FICTIONAL: 3 years or 30,000 km from purchase, whichever is earlier. Wear and maintenance items excluded.",
+              "checked_on": "2026-10-28",
+              "source_rank": 1,
+              "sufficient": true,
+              "verified_by_human": true,
+              "from_cache": false
+            }
+          ],
+          "uncertainty": "No matching recall found in the sources checked (Fictional sample recall list).",
+          "next_step": "",
+          "verify_url": null,
+          "calculation": null
+        },
+        {
+          "check": "authorization",
+          "category": "supported",
+          "label": "On the estimate",
+          "rule": "item matches an estimate line",
+          "inputs": {
+            "bill_amount": 400.0,
+            "estimate_amount": 400.0,
+            "tolerance_pct": 10.0
+          },
+          "evidence": [],
+          "uncertainty": null,
+          "next_step": "",
+          "verify_url": null,
+          "calculation": null
+        },
+        {
+          "check": "arithmetic",
+          "category": "supported",
+          "label": "Line arithmetic adds up",
+          "rule": "|qty \u00d7 unit \u2212 total| <= \u20b91",
+          "inputs": {
+            "qty": 1.0,
+            "unit": 400.0,
+            "total": 400.0
+          },
+          "evidence": [],
+          "uncertainty": null,
+          "next_step": "",
+          "verify_url": null,
+          "calculation": "1 \u00d7 \u20b9400 = \u20b9400; printed \u20b9400"
+        }
+      ]
+    },
+    {
+      "index": 5,
+      "item": {
+        "raw_text": {
+          "value": "SPL TRTMT XQ-7",
+          "origin": "extracted",
+          "extracted_value": "SPL TRTMT XQ-7"
+        },
+        "qty": {
+          "value": 1.0,
+          "origin": "extracted",
+          "extracted_value": 1.0
+        },
+        "unit_price_inr": {
+          "value": 299.0,
+          "origin": "extracted",
+          "extracted_value": 299.0
+        },
+        "line_total_inr": {
+          "value": 299.0,
+          "origin": "extracted",
+          "extracted_value": 299.0
+        },
+        "part_number": {
+          "value": null,
+          "origin": "extracted",
+          "extracted_value": null
+        },
+        "gst_included": {
+          "value": null,
+          "origin": "extracted",
+          "extracted_value": null
+        },
+        "kind": "unknown",
+        "grade": "unknown",
+        "job": "unrecognised",
+        "job_confidence": null,
+        "job_source": "none"
+      },
+      "job_label": "Unrecognised item",
+      "findings": [
+        {
+          "check": "schedule",
+          "category": "unable_to_verify",
+          "label": "Item not recognised: ask the advisor what this item is",
+          "rule": "line_job == 'unrecognised' -> every reference check is unable_to_verify",
+          "inputs": {},
+          "evidence": [],
+          "uncertainty": "FairFix couldn't confidently map this bill text to a standard job, so it doesn't guess.",
+          "next_step": "Ask the advisor what this line is for; you can then pick the job on the correction screen.",
+          "verify_url": null,
+          "calculation": null
+        },
+        {
+          "check": "price",
+          "category": "unable_to_verify",
+          "label": "Item not recognised: ask the advisor what this item is",
+          "rule": "line_job == 'unrecognised' -> every reference check is unable_to_verify",
+          "inputs": {},
+          "evidence": [],
+          "uncertainty": "FairFix couldn't confidently map this bill text to a standard job, so it doesn't guess.",
+          "next_step": "Ask the advisor what this line is for; you can then pick the job on the correction screen.",
+          "verify_url": null,
+          "calculation": null
+        },
+        {
+          "check": "coverage",
+          "category": "unable_to_verify",
+          "label": "Item not recognised: ask the advisor what this item is",
+          "rule": "line_job == 'unrecognised' -> every reference check is unable_to_verify",
+          "inputs": {},
+          "evidence": [],
+          "uncertainty": "FairFix couldn't confidently map this bill text to a standard job, so it doesn't guess.",
+          "next_step": "Ask the advisor what this line is for; you can then pick the job on the correction screen.",
+          "verify_url": null,
+          "calculation": null
+        },
+        {
+          "check": "authorization",
+          "category": "unable_to_verify",
+          "label": "Item not recognised: ask the advisor what this item is",
+          "rule": "line_job == 'unrecognised' -> every reference check is unable_to_verify",
+          "inputs": {},
+          "evidence": [],
+          "uncertainty": "FairFix couldn't confidently map this bill text to a standard job, so it doesn't guess.",
+          "next_step": "Ask the advisor what this line is for; you can then pick the job on the correction screen.",
+          "verify_url": null,
+          "calculation": null
+        },
+        {
+          "check": "arithmetic",
+          "category": "supported",
+          "label": "Line arithmetic adds up",
+          "rule": "|qty \u00d7 unit \u2212 total| <= \u20b91",
+          "inputs": {
+            "qty": 1.0,
+            "unit": 299.0,
+            "total": 299.0
+          },
+          "evidence": [],
+          "uncertainty": null,
+          "next_step": "",
+          "verify_url": null,
+          "calculation": "1 \u00d7 \u20b9299 = \u20b9299; printed \u20b9299"
+        }
+      ]
+    }
+  ],
+  "bill_findings": [
+    {
+      "check": "arithmetic",
+      "category": "supported",
+      "label": "Subtotal matches the lines",
+      "rule": "|\u03a3 lines \u2212 subtotal| <= \u20b92",
+      "inputs": {},
+      "evidence": [],
+      "uncertainty": null,
+      "next_step": "",
+      "verify_url": null,
+      "calculation": "sum of lines \u20b92,199; printed subtotal \u20b92,199"
+    },
+    {
+      "check": "arithmetic",
+      "category": "supported",
+      "label": "Totals reconcile with the bill's own structure",
+      "rule": "|expected \u2212 grand_total| <= \u20b92",
+      "inputs": {},
+      "evidence": [],
+      "uncertainty": null,
+      "next_step": "",
+      "verify_url": null,
+      "calculation": "\u20b92,199 \u2212 discount \u20b90 + tax \u20b9395.82 + round-off \u20b90.18 = \u20b92,595; printed total \u20b92,595"
+    }
+  ],
+  "old_part": null,
+  "needs_confirmation_total_inr": 450.0,
+  "partial_audit": false,
+  "partial_reason": null,
+  "message_to_advisor": "Hello, thank you for working on my vehicle. Before I pay, could you help me with a few items on the bill?\n\n1. Engine flush: could you explain why it's recommended and whether it's optional? It isn't listed in the official service schedule.\n2. Engine flush: could you confirm when this was approved? I don't see it on the estimate.\n\nThank you.",
+  "message_language": "en",
+  "message_source": "template",
+  "disclaimer": "A second opinion from public information, not a mechanic's inspection or legal advice.",
+  "warnings": [
+    "Sample vehicle: every reference fact is fictional and only shows how the audit works.",
+    "Line mapping by model unavailable (provider_error); unmatched lines are marked unrecognised.",
+    "Price search failed (ConnectError); price checks show Unable to verify."
+  ],
+  "trace": [
+    {
+      "step": "map",
+      "label": "Matched each line to a standard job",
+      "engine": "Matching table",
+      "ms": 4520.602100004908,
+      "detail": "5 by the matching table, 1 not recognised",
+      "skipped": false
+    },
+    {
+      "step": "facts",
+      "label": "Loaded official schedule, warranty and recall facts",
+      "engine": "Fact pack",
+      "ms": 5.099999994854443,
+      "detail": "8 hand-checked facts for FairFix Sample Scooter (fictional, for demos and tests)",
+      "skipped": false
+    },
+    {
+      "step": "prices",
+      "label": "Searched part prices from credible sellers",
+      "engine": "Tavily + Nemotron 3 Super",
+      "ms": 1302.2306999919238,
+      "detail": "3 listings for 4 parts",
+      "skipped": false
+    },
+    {
+      "step": "decide",
+      "label": "Applied the rules to every line",
+      "engine": "Python rules",
+      "ms": 6.821599992690608,
+      "detail": "32 results, each with its evidence",
+      "skipped": false
+    },
+    {
+      "step": "message",
+      "label": "Wrote the message to the advisor",
+      "engine": "Template",
+      "ms": 8.803099990473129,
+      "detail": "Deterministic wording",
+      "skipped": false
+    }
+  ]
+}

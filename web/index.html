@@ -7,25 +7,89 @@
 <meta name="description" content="A second opinion on your vehicle service bill, line by line, with the evidence behind every result.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Kalam:wght@400;700&family=Noto+Sans+Devanagari:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Courier+Prime:wght@400;700&family=Kalam:wght@400;700&family=Noto+Sans+Devanagari:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="signin.css">
 </head>
 <body>
 <header class="masthead">
-  <a class="brand" href="#" data-go="home">FairFix</a>
-  <p class="tagline">A second opinion on your service bill, before you pay.</p>
+  <a class="brand" href="/" data-go="home" aria-label="FairFix home">FairFix<svg class="tick" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 11 L8 15.5 L17 4" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+  <nav class="nav" aria-label="Main">
+    <a href="/signin.html">Check a bill</a>
+    <a href="/dashboard.html">How it performs</a>
+    <a href="/signin.html" class="nav-signin" id="nav-signin">Sign in</a>
+    <button type="button" class="signed" id="signed" hidden>Sign out</button>
+  </nav>
 </header>
 
-<main id="app">
+<main id="app" class="home">
 
   <!-- HOME -->
-  <section class="view" id="view-home" aria-labelledby="home-h">
-    <h1 id="home-h" class="lede">Which lines on this bill should you ask about?</h1>
-    <p class="body">Photograph the bill and the estimate. FairFix reads every line, checks it against the official service schedule, comparable part prices, warranty and recall information and your estimate, and drafts a polite question for the service advisor. Every result shows its evidence, and when FairFix can't verify something it says so.</p>
-    <div class="actions">
-      <button class="btn primary" data-go="vehicle">Check a bill</button>
+  <section class="view home" id="view-home" aria-labelledby="home-h">
+    <div class="hero">
+      <div class="hero-copy">
+        <h1 id="home-h">Which lines on this bill should you ask about?</h1>
+        <p class="body">Photograph the service bill. FairFix reads every line, checks it against the official schedule, part prices, warranty and recalls, and writes a polite question for the advisor. When it can't verify something, it says so.</p>
+        <ol class="hero-steps" id="hero-steps">
+          <li data-phase="read"><b>Reads the bill</b><span>NVIDIA Nemotron copies every line and leaves out your name, phone and registration.</span></li>
+          <li data-phase="check"><b>Checks each line</b><span>Plain rules decide, using the service schedule, seller prices and recall notices. Every mark links to its source.</span></li>
+          <li data-phase="ask"><b>Drafts your question</b><span>Neutral wording in English or Hindi, ready for WhatsApp.</span></li>
+        </ol>
+        <div class="actions">
+          <button class="btn primary" data-go="vehicle">Check a bill</button>
+          <a class="btn quiet" href="/dashboard.html">See how it performs</a>
+        </div>
+      </div>
+
+      <figure class="jobcard-wrap" id="hero-bill" aria-label="Animated example: FairFix checks a sample job card and marks one line to ask about">
+        <div class="printer" aria-hidden="true"></div>
+        <div class="jobcard">
+          <header class="jc-head">
+            <div><strong>Sample Seva Service Centre</strong><small>Authorised two-wheeler service · fictional</small></div>
+            <div class="jc-no">Job card <b>JC-2196</b><small>20 Oct 2026</small></div>
+          </header>
+          <dl class="jc-cust">
+            <div><dt>Customer</dt><dd><span class="redact">Ravi Kumar</span></dd></div>
+            <div><dt>Mobile</dt><dd><span class="redact">98XXX 41207</span></dd></div>
+            <div><dt>Reg. no.</dt><dd><span class="redact">UP14 AB 2196</span></dd></div>
+            <div><dt>Odometer</dt><dd>9,800 km</dd></div>
+          </dl>
+          <div class="jc-table" role="table" aria-label="Bill lines">
+            <div class="jc-tr jc-th" role="row"><span>#</span><span>Description</span><span>Amount</span><span class="v"></span></div>
+            <div class="jc-tr" style="--i:0" data-v="ok" role="row"><span>1</span><span>ENGINE OIL 10W30 0.8L</span><span>380.00</span><span class="v"></span></div>
+            <div class="jc-tr" style="--i:1" data-v="ok" role="row"><span>2</span><span>AIR CLNR ELEMENT</span><span>320.00</span><span class="v"></span></div>
+            <div class="jc-tr" style="--i:2" data-v="ask" role="row"><span>3</span><span>ENG FLUSH</span><span class="ring">450.00<svg viewBox="0 0 120 44" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M60 4 C 18 3, 4 14, 6 24 C 9 38, 70 43, 106 35 C 122 30, 118 10, 92 6 C 80 4, 70 4, 58 6"/></svg></span><span class="v"></span>
+              <span class="pen-note">not in the 10,000 km schedule. ask</span></div>
+            <div class="jc-tr" style="--i:3" data-v="ok" role="row"><span>4</span><span>BRAKE SHOE SET (REAR)</span><span>350.00</span><span class="v"></span></div>
+            <div class="jc-tr" style="--i:4" data-v="ok" role="row"><span>5</span><span>PERIODIC SERVICE LABOUR</span><span>400.00</span><span class="v"></span></div>
+            <div class="jc-tr" style="--i:5" data-v="unk" role="row"><span>6</span><span>SPL TRTMT XQ-7</span><span>299.00</span><span class="v"></span></div>
+          </div>
+          <div class="jc-total"><span>Total incl. GST</span><b>₹ 2,595.00</b></div>
+          <div class="jc-sign"><span>Advisor</span><span class="squiggle"></span></div>
+          <div class="scanbar" aria-hidden="true"><span class="scan-chip">Reading with Nemotron 3.5 Super VL</span></div>
+          <div class="hero-stamp" aria-hidden="true"><b>1 line to ask</b><span>₹450 of ₹2,595</span></div>
+        </div>
+        <div class="wa" aria-hidden="true"><p class="wa-text" data-text="Hi, before I pay: could you show me where the engine flush comes in the service schedule for 10,000 km? Thank you."></p><small>to the service advisor</small></div>
+        <figcaption><button type="button" class="replay" id="hero-replay">Play again</button><span>Sample bill. The vehicle and facts are fictional.</span></figcaption>
+      </figure>
     </div>
-    <div id="demo-list" class="demo-list" aria-live="polite"></div>
+
+    <section class="signin home-signin" id="home-signin" aria-labelledby="hs-h">
+      <div class="si-copy">
+        <h2 id="hs-h">Sign in to check your own bill</h2>
+        <p class="body">Create a free account with your email and a password, then photograph your bill. Accounts keep each person's use of the paid NVIDIA Nemotron models on Nebius within fair limits.</p>
+        <ul class="si-open">
+          <li><b>Open to everyone, no code:</b> the sample bills below and <a href="/dashboard.html">how FairFix performs</a>.</li>
+          <li><b>Your account holds your email and a hashed password only.</b> Bills, photos and results are never saved to it.</li>
+        </ul>
+      </div>
+      <div class="token" id="hs-card" aria-live="polite">
+        <div class="af-keep"><div class="token-perf" aria-hidden="true"></div><p class="token-label">Your FairFix account</p>
+          <p class="si-need" id="hs-need" hidden role="status">Sign in first, then you can check your bill.</p></div>
+      </div>
+    </section>
+
+    <section class="demo-list" id="demo-list" aria-live="polite"></section>
     <p class="fine" id="privacy-note"></p>
   </section>
 
@@ -33,6 +97,8 @@
   <section class="view" id="view-vehicle" hidden aria-labelledby="veh-h">
     <ol class="steps" aria-label="Progress"><li aria-current="step">Vehicle and photos</li><li>Check what was read</li><li>Results</li></ol>
     <h2 id="veh-h">Your vehicle</h2>
+    <p class="hint">Want to test each step? Load a fictional sample, review the vehicle, then click ?Review sample bill?.</p>
+    <button type="button" class="btn quiet" id="walkthrough-btn">Load sample walkthrough</button>
     <form id="vehicle-form" class="form" novalidate>
       <label>Vehicle
         <select name="vehicle_id" id="vehicle-select" required></select>
@@ -69,13 +135,18 @@
       </details>
 
       <h2>Photos</h2>
-      <label class="drop">Bill (required, up to 6 pages)
+      <p class="sample-photos">No bill to hand? Try a sample photo of a fictional bill:
+        <button type="button" class="btn quiet small" data-sample="bill_english.jpg">English bill</button>
+        <button type="button" class="btn quiet small" data-sample="bill_hindi.jpg">हिंदी bill</button></p>
+      <label class="drop" id="bill-drop">Bill (required, up to 6 pages)
         <input type="file" id="bill-files" accept="image/jpeg,image/png,image/webp" multiple capture="environment">
+        <span class="thumbs" aria-hidden="true"></span>
       </label>
-      <label class="drop">Original estimate (optional)
+      <label class="drop" id="estimate-drop">Original estimate (optional)
         <input type="file" id="estimate-files" accept="image/jpeg,image/png,image/webp" multiple capture="environment">
+        <span class="thumbs" aria-hidden="true"></span>
       </label>
-      <p class="hint">Blur or cover names, phone numbers and the registration number if you can. Photos are read by an AI model hosted by Nebius and not kept by FairFix.</p>
+      <p class="hint">Blur or cover names, phone numbers and the registration number if you can. Photos are read by NVIDIA Nemotron on Nebius and not kept by FairFix.</p>
 
       <h2>Approvals after the estimate</h2>
       <p class="hint">Anything you agreed to later, for example on a call with the advisor. Written notes only.</p>
@@ -97,9 +168,22 @@
     </form>
   </section>
 
+  <!-- READING (scan) -->
+  <section class="view" id="view-reading" hidden aria-labelledby="read-h" aria-live="polite">
+    <ol class="steps" aria-label="Progress"><li class="done">Vehicle and photos</li><li aria-current="step">Check what was read</li><li>Results</li></ol>
+    <div class="scan-stage">
+      <div class="scan"><img id="scan-img" alt="Your bill photo being read"></div>
+      <div class="scan-caption">
+        <strong id="read-h">Reading your bill</strong>
+        <span class="engine live" id="scan-engine">Nemotron 3.5 Super VL</span>
+        <p class="hint" id="scan-detail">Copying every line and amount exactly as printed, and leaving out names and numbers.</p>
+      </div>
+    </div>
+  </section>
+
   <!-- STEP 2: CORRECTION -->
   <section class="view" id="view-correct" hidden aria-labelledby="cor-h">
-    <ol class="steps" aria-label="Progress"><li>Vehicle and photos</li><li aria-current="step">Check what was read</li><li>Results</li></ol>
+    <ol class="steps" aria-label="Progress"><li class="done">Vehicle and photos</li><li aria-current="step">Check what was read</li><li>Results</li></ol>
     <h2 id="cor-h">Check what was read</h2>
     <p class="body">Fix anything misread before the checks run. Values you change are marked as corrected by you, and the original reading is kept.</p>
     <div id="extract-notes"></div>
@@ -140,32 +224,48 @@
 
   <!-- STEP 3: RESULTS -->
   <section class="view" id="view-result" hidden aria-labelledby="res-h">
-    <ol class="steps" aria-label="Progress" id="result-steps"><li>Vehicle and photos</li><li>Check what was read</li><li aria-current="step">Results</li></ol>
+    <ol class="steps" aria-label="Progress" id="result-steps"><li class="done">Vehicle and photos</li><li class="done">Check what was read</li><li aria-current="step">Results</li></ol>
     <div id="result-banner"></div>
-    <h2 id="res-h" class="result-head"></h2>
-    <p class="body" id="result-sub"></p>
-
-    <div class="slip" id="slip" aria-label="Your bill, line by line"></div>
-
-    <section class="msg" aria-labelledby="msg-h">
-      <h3 id="msg-h">Message to the service advisor</h3>
-      <div class="lang" role="group" aria-label="Message language">
-        <button class="chip" data-lang="en" aria-pressed="true">English</button>
-        <button class="chip" data-lang="hi" aria-pressed="false">हिन्दी</button>
+    <div class="result-grid">
+      <div class="result-main">
+        <h2 id="res-h" class="result-head"></h2>
+        <p class="body" id="result-sub"></p>
+        <ul class="legend" aria-label="What the marks mean">
+          <li><i style="background:var(--pen)"></i>ask about this</li>
+          <li><i style="background:var(--ok)"></i>nothing to ask</li>
+          <li><i style="background:var(--unk)"></i>couldn't check</li>
+        </ul>
+        <div id="slip-wrap"><div class="slip" id="slip" aria-label="Your bill, line by line"></div></div>
+        <div id="photo-obs"></div>
       </div>
-      <textarea id="message" rows="9" aria-label="Message text"></textarea>
-      <div class="actions">
-        <button class="btn primary" id="copy-msg">Copy message</button>
-        <a class="btn quiet" id="wa-msg" target="_blank" rel="noopener">Open in WhatsApp</a>
-      </div>
-      <p class="hint" id="msg-source"></p>
-    </section>
 
-    <details class="next">
-      <summary>If you still disagree after asking</summary>
-      <p class="body">Ask for the job card and the old parts before paying. If a question isn't resolved, the National Consumer Helpline (1915, or consumerhelpline.gov.in) can advise. This is general guidance, not legal advice.</p>
-    </details>
+      <aside class="result-side">
+        <section class="panel msg" aria-labelledby="msg-h">
+          <h3 id="msg-h">Message to the service advisor</h3>
+          <div class="lang" role="group" aria-label="Message language">
+            <button class="chip" data-lang="en" aria-pressed="true">English</button>
+            <button class="chip" data-lang="hi" aria-pressed="false">हिन्दी</button>
+          </div>
+          <textarea id="message" rows="9" aria-label="Message text"></textarea>
+          <div class="actions">
+            <button class="btn primary" id="copy-msg">Copy message</button>
+            <a class="btn quiet" id="wa-msg" target="_blank" rel="noopener">Open in WhatsApp</a>
+          </div>
+          <p class="hint" id="msg-source"></p>
+        </section>
 
+        <section class="panel pipeline-panel" aria-labelledby="pipe-h">
+          <h3 id="pipe-h">What ran for this bill</h3>
+          <ol class="pipeline" id="pipeline"></ol>
+          <div class="pipe-total" id="pipe-total"></div>
+        </section>
+
+        <details class="next">
+          <summary>If you still disagree after asking</summary>
+          <p class="body">Ask for the job card and the old parts before paying. If a question isn't resolved, the National Consumer Helpline (1915, or consumerhelpline.gov.in) can advise. This is general guidance, not legal advice.</p>
+        </details>
+      </aside>
+    </div>
     <p class="fine" id="disclaimer"></p>
     <div class="actions"><button class="btn quiet" data-go="home">Check another bill</button></div>
   </section>
@@ -217,6 +317,7 @@
   </fieldset>
 </template>
 
+<script src="auth-ui.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

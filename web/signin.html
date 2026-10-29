@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in to FairFix</title>
+<meta name="description" content="Sign in or create a FairFix account to check your own service bill.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Courier+Prime:wght@400;700&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="signin.css">
+</head>
+<body>
+<header class="masthead">
+  <a class="brand" href="/" aria-label="FairFix home">FairFix<svg class="tick" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 11 L8 15.5 L17 4" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+  <nav class="nav" aria-label="Main">
+    <a href="/signin.html">Check a bill</a>
+    <a href="/dashboard.html">How it performs</a>
+    <a href="/signin.html" class="nav-signin" aria-current="page">Sign in</a>
+  </nav>
+</header>
+
+<main class="signin">
+  <section class="si-copy">
+    <h1>Sign in to check your own bill</h1>
+    <p class="body">Create a free account with your email and a password, then photograph your bill. Accounts keep each person's use of the paid NVIDIA Nemotron models on Nebius within fair limits.</p>
+    <ul class="si-open">
+      <li><b>Open to everyone, no code:</b> the sample bills on the home page and <a href="/dashboard.html">how FairFix performs</a>.</li>
+      <li><b>Your account holds your email and a hashed password only.</b> Bills, photos and results are never saved to it, and you can delete the account at any time.</li>
+    </ul>
+  </section>
+
+  <section class="token" id="si-card" aria-live="polite">
+    <div class="af-keep"><div class="token-perf" aria-hidden="true"></div><p class="token-label">Your FairFix account</p></div>
+  </section>
+</main>
+<script src="auth-ui.js"></script>
+<script src="signin.js"></script>
+</body>
+</html>

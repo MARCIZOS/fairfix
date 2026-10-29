@@ -32,12 +32,16 @@ class Settings:
     model_text: str = os.environ.get("MODEL_TEXT", "nvidia/nemotron-3-super-120b-a12b")
     model_explain: str = os.environ.get("MODEL_EXPLAIN", "")  # empty = use model_text; set to Ultra only if the eval says so
 
+    # Turn off Nemotron's reasoning for these extraction/rewrite calls (1 = off, 0 = leave on)
+    disable_thinking: bool = os.environ.get("DISABLE_THINKING", "1") == "1"
+
     # Tavily
     tavily_api_key: str = os.environ.get("TAVILY_API_KEY", "")
 
     # Timeouts (seconds)
     model_timeout_s: float = _f("MODEL_TIMEOUT_S", 45)
-    search_timeout_s: float = _f("SEARCH_TIMEOUT_S", 8)
+    search_timeout_s: float = _f("SEARCH_TIMEOUT_S", 20)
+    search_depth: str = os.environ.get("TAVILY_SEARCH_DEPTH", "basic")  # basic = 1 credit, faster; advanced = 2 credits
 
     # Rule thresholds (all shown to the user in the UI and README)
     price_review_threshold_pct: float = _f("PRICE_REVIEW_THRESHOLD_PCT", 15)
@@ -54,6 +58,19 @@ class Settings:
     facts_dir: Path = ROOT / "facts"
     cache_db: Path = Path(os.environ.get("CACHE_DB", str(ROOT / "fairfix_public_cache.sqlite")))
     call_log: Path = Path(os.environ.get("CALL_LOG", str(ROOT / "logs" / "calls.jsonl")))
+
+    # Accounts (email + password). AUTH_REQUIRED=0 turns sign-in off (tests, offline work only).
+    auth_required: bool = os.environ.get("AUTH_REQUIRED", "1") == "1"
+    users_db: Path = Path(os.environ.get("USERS_DB", str(ROOT / "data" / "users.sqlite")))
+    database_url: str = os.environ.get("DATABASE_URL", "")          # Postgres for accounts (e.g. Neon); empty = SQLite
+    signup_codes: tuple[str, ...] = tuple(c.strip() for c in os.environ.get("SIGNUP_CODES", "").split(",") if c.strip())
+    session_days: float = _f("SESSION_DAYS", 7)
+    trust_proxy: bool = os.environ.get("TRUST_PROXY", "0") == "1"  # read client IP from X-Forwarded-For
+    rate_read_per_hour: int = int(_f("RATE_READ_PER_HOUR", 15))     # photo readings per account
+    rate_audit_per_hour: int = int(_f("RATE_AUDIT_PER_HOUR", 40))   # checks + message redrafts per account
+    rate_ip_per_hour: int = int(_f("RATE_IP_PER_HOUR", 60))         # all model-backed requests per IP
+    login_attempts: int = int(_f("LOGIN_ATTEMPTS", 5))              # failed sign-ins per IP per 15 minutes
+    signups_per_hour: int = int(_f("SIGNUPS_PER_HOUR", 5))          # new accounts per IP per hour
 
     # Fictional sample vehicle for demos/tests. Off in production unless set.
     allow_fictional_sample: bool = os.environ.get("ALLOW_FICTIONAL_SAMPLE", "1") == "1"

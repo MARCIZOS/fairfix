@@ -1,0 +1,27 @@
+# Render blueprint: free web service. Accounts go to a free Neon Postgres (DATABASE_URL),
+# because a free Render instance's disk is wiped on every restart and deploy.
+services:
+  - type: web
+    name: fairfix
+    runtime: python
+    plan: free
+    region: singapore
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips "*"
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: NEBIUS_API_KEY
+        sync: false
+      - key: TAVILY_API_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: AUTH_REQUIRED
+        value: "1"
+      - key: TRUST_PROXY
+        value: "1"
+      - key: SIGNUP_CODES
+        sync: false

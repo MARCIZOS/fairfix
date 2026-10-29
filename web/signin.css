@@ -1,0 +1,51 @@
+/* Account card (home page section and /signin.html). Tokens come from styles.css. */
+main.signin { max-width: calc(100vw - 2 * var(--edge)); display: grid; gap: 2rem; align-items: center; padding: 2.5rem 0 1rem; }
+@media (min-width: 52rem) { main.signin { grid-template-columns: 1.1fr .9fr; gap: 4rem; padding-top: 4.5rem; } }
+.signin h1 { font-size: clamp(2rem, 5vw, 3rem); line-height: 1.08; margin: 0 0 1rem; max-width: 15ch; letter-spacing: -.02em; }
+.signin .body { color: var(--ink-soft); font-size: 1.08rem; max-width: 34rem; }
+.si-open { list-style: none; padding: 0; margin: 1.4rem 0 0; display: grid; gap: .7rem; max-width: 34rem; }
+.si-open li { padding-left: 1rem; border-left: 3px solid var(--carbon); color: var(--ink-soft); }
+.si-open b { color: var(--ink); }
+
+/* the form as a desk token slip */
+.token { position: relative; background: var(--sheet); padding: 1.8rem 1.6rem 1.6rem; box-shadow: var(--shadow); border-radius: 4px 4px 14px 14px; transform: rotate(.6deg);
+  animation: tokenin .6s cubic-bezier(.3, 1.3, .5, 1) both; }
+@keyframes tokenin { from { opacity: 0; transform: translateY(16px) rotate(-2deg); } }
+.token-perf { position: absolute; left: 0; right: 0; top: -7px; height: 14px; background: radial-gradient(circle, var(--paper) 0 5px, transparent 5.5px) 0 0 / 18px 14px repeat-x; }
+.token-label { font: 700 1.1rem var(--hand); color: var(--pen); margin: 0 0 1rem; transform: rotate(-1.5deg); }
+.token label { display: block; font-weight: 700; margin-bottom: .4rem; }
+.token input { width: 100%; font: 400 1.05rem var(--sans); padding: .7rem .85rem; border: 2px solid var(--rule); border-radius: 10px; background: var(--paper); color: var(--carbon); }
+.token input:focus { border-color: var(--carbon); outline: none; box-shadow: 0 0 0 4px var(--carbon-wash); }
+.af-form > .btn { margin-top: .4rem; width: 100%; justify-content: center; }
+.token .actions .btn { width: auto; margin-top: 0; }
+.si-ok { display: flex; gap: .55rem; align-items: center; font-weight: 700; font-size: 1.1rem; margin: 0 0 .6rem; color: var(--ok); }
+.si-ok svg { width: 1.5rem; height: 1.5rem; flex: none; }
+.si-ok path { fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 30; stroke-dashoffset: 30; animation: si-draw .5s .15s var(--ease) forwards; }
+@keyframes si-draw { to { stroke-dashoffset: 0; } }
+.token.shake { animation: shake .35s; }
+@media (prefers-reduced-motion: reduce) { .token, .si-ok path { animation: none; stroke-dashoffset: 0; } }
+
+/* the same sign-in, as a section of the home page right after the hero */
+.home-signin { display: grid; gap: 1.6rem; align-items: center; margin: 0 0 2.5rem; padding: .5rem 0 2.5rem; border-bottom: 2px dashed var(--rule); }
+@media (min-width: 52rem) { .home-signin { grid-template-columns: 1.1fr .9fr; gap: 4rem; } }
+.home-signin h2 { font-size: clamp(1.7rem, 3.6vw, 2.4rem); line-height: 1.1; margin: 0 0 .8rem; letter-spacing: -.015em; max-width: 18ch; }
+.home-signin .token { animation: none; max-width: 30rem; width: 100%; justify-self: center; }
+.si-need { margin: -.3rem 0 .9rem; padding: .6rem .8rem; border-radius: 8px; background: var(--pen-wash); border-left: 4px solid var(--pen); font-weight: 700; }
+.si-need:not([hidden]) { animation: inkin .35s var(--ease); }
+
+/* tabs, fields, password toggle */
+.af-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; background: var(--paper); border-radius: 12px; margin-bottom: 1.1rem; }
+.af-tab { font: 700 .95rem var(--sans); border: 0; border-radius: 9px; padding: .6rem .5rem; min-height: 42px; background: transparent; color: var(--ink-soft); cursor: pointer; }
+.af-tab[aria-selected="true"] { background: var(--sheet); color: var(--carbon); box-shadow: 0 1px 3px rgba(27, 34, 51, .15); }
+.af { position: relative; margin-bottom: .85rem; }
+.af .eye { position: absolute; right: .45rem; bottom: .45rem; font: 700 .8rem var(--sans); color: var(--carbon); background: var(--carbon-wash); border: 0; border-radius: 7px; padding: .35rem .6rem; cursor: pointer; }
+.af input[type="password"], .af input[id$="-pw"] { padding-right: 4.2rem; }
+.af-hint { color: var(--ink-soft); font-size: .86rem; margin: .1rem 0 .8rem; }
+.af-form .error { margin: 0 0 .6rem; }
+.af-form > .af-hint:last-child { margin: .9rem 0 0; }
+.af-del { margin-top: 1.2rem; border-top: 1px dashed var(--rule); padding-top: .8rem; }
+.af-del summary { cursor: pointer; color: var(--ink-soft); font-size: .9rem; font-weight: 700; }
+.af-del[open] summary { margin-bottom: .6rem; }
+.btn.danger { border-color: #b3261e; color: #b3261e; }
+.si-ok b { word-break: break-all; }
+.token .actions { margin: .6rem 0 0; }

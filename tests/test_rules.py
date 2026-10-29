@@ -13,8 +13,8 @@ import pytest
 from app import rules
 from app.config import settings
 from app.guard import accusatory_terms
-from app.schemas import ApprovalNote, Document
-from tests.helpers import BILL_DATE, F, doc, hist, line, pack, price_fact, vehicle
+from app.schemas import ApprovalNote
+from tests.helpers import BILL_DATE, doc, hist, line, pack, price_fact, vehicle
 
 P = pack()
 
@@ -426,3 +426,47 @@ def test_all_four_categories_produced():
 ])
 def test_guard(text, bad):
     assert bool(accusatory_terms(text)) == bad
+
+
+@pytest.mark.parametrize("text,job", [
+    ("इंजन ऑयल", "engine_oil_replacement"),
+    ("एयर फ़िल्टर", "air_filter_replacement"),      # with nukta
+    ("एयर फिल्टर", "air_filter_replacement"),       # without nukta
+    ("ब्रेक शू (पीछे)", "brake_shoe_replacement"),
+    ("सर्विस चार्ज", "periodic_service_labour"),
+    ("धुलाई", "washing"),
+    ("SPK PLG", "spark_plug_replacement"),
+    ("GEN SRVC LBR", "periodic_service_labour"),
+    ("WSH", "washing"),
+    ("Car washer fluid", "washer_fluid"),
+    ("FRONT FORK OIL SEAL", "suspension_repair"),
+    ("SPL TRTMT XQ-7", None),                       # unknown shop code: never guessed
+])
+def test_alias_matching(text, job):
+    from app.jobs import alias_match
+    assert alias_match(text) == job
+
+
+def test_tax_inclusive_bill_with_taxable_value_subtotal():
+    # Dealer invoice: MRP lines incl. GST, printed "taxable value" + CGST + SGST, discount on the total
+    lines = [line("a", total=330), line("b", total=165), line("c", total=360), line("d", total=410)]
+    d = doc(lines, subtotal_inr=1072.03, prices_include_tax=True, discount_inr=63.25, round_off_inr=0.25,
+            tax_lines=[{"name": "CGST", "amount_inr": 96.48}, {"name": "SGST", "amount_inr": 96.49}], grand_total_inr=1202)
+    sub, total = rules.check_bill_arithmetic(d)
+    assert sub.category == "supported" and "taxable value" in sub.label
+    assert total.category == "supported"
+
+
+def test_taxable_subtotal_only_accepted_when_prices_include_tax():
+    lines = [line("a", total=1265)]
+    d = doc(lines, subtotal_inr=1072.03, prices_include_tax=False,
+            tax_lines=[{"name": "GST", "amount_inr": 192.97}], grand_total_inr=1265)
+    assert rules.check_bill_arithmetic(d)[0].category == "needs_confirmation"
+
+
+def test_notes_about_people_are_dropped():
+    from app.steps.extract import safe_note, redact
+    assert safe_note("CUST: Test Customer") is None
+    assert safe_note("Mobile 9000000000 printed at top") is None
+    assert safe_note("Handwritten line 4 added: Coolant top up") == "Handwritten line 4 added: Coolant top up"
+    assert redact("NAME PLATE FRONT") == "NAME PLATE FRONT"   # item text keeps part names

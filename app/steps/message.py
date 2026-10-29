@@ -8,7 +8,6 @@ below is used, so there is always a neutral message.
 
 from __future__ import annotations
 
-from pydantic import BaseModel
 
 from ..config import settings
 from ..guard import accusatory_terms
@@ -94,10 +93,6 @@ def template_message(report: AuditReport, lang: str = "en") -> str:
         lines.append(f"{n}. {name}: {Q[k][i]}")
     lines += ["", CLOSE[i]]
     return "\n".join(lines)
-
-
-class _Draft(BaseModel):
-    message: str
 
 
 def draft_message(report: AuditReport, lang: str = "en") -> tuple[str, str]:

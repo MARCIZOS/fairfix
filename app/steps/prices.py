@@ -12,6 +12,7 @@
 from __future__ import annotations
 
 import re
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date
 from typing import Literal
 
@@ -55,13 +56,13 @@ def _squash(s: str) -> str:
     return " ".join((s or "").split()).lower()
 
 
-def tavily_search(query: str) -> list[dict]:
+def tavily_search(query: str, timeout: float | None = None) -> list[dict]:
     if not settings.search_configured:
         return []
-    body = {"query": query, "search_depth": "advanced", "max_results": 5, "include_raw_content": True,
+    body = {"query": query, "search_depth": settings.search_depth, "max_results": 5, "include_raw_content": True,
             "include_domains": list(CREDIBLE_SELLER_DOMAINS)}
     headers = {"Authorization": f"Bearer {settings.tavily_api_key}"}
-    with httpx.Client(timeout=settings.search_timeout_s) as c:
+    with httpx.Client(timeout=timeout or settings.search_timeout_s) as c:
         r = c.post(TAVILY_URL, json=body, headers=headers)
         r.raise_for_status()
         return r.json().get("results", [])
@@ -113,6 +114,9 @@ def extract_listings(page_text: str, url: str, line: LineItem, vehicle: Vehicle)
     return facts
 
 
+MAX_PAGES_PER_PART = 6
+
+
 def lookup_comparables(line: LineItem, vehicle: Vehicle) -> tuple[list[Fact], list[str]]:
     """Return (comparables, warnings). Never raises."""
     if line.kind in ("labour", "part_with_fitting") or not line.job:
@@ -128,19 +132,29 @@ def lookup_comparables(line: LineItem, vehicle: Vehicle) -> tuple[list[Fact], li
         return [], ["Price search not configured; price checks show Unable to verify."]
     facts: list[Fact] = []
     warnings: list[str] = []
-    try:
-        for q in queries_for(line, vehicle):
-            for res in tavily_search(q):
-                text = res.get("raw_content") or ""
-                url = res.get("url") or ""
-                if len(text) < 200 or not url:
-                    continue
-                try:
-                    facts.extend(extract_listings(text, url, line, vehicle))
-                except ModelError as exc:
-                    warnings.append(f"A price page couldn't be read ({exc.kind}).")
-    except httpx.HTTPError as exc:
-        warnings.append(f"Price search failed ({type(exc).__name__}); price checks show Unable to verify.")
+    # Both searches run at once, then every result page is read at once (was one by one: ~17 s for 3 parts).
+    pages: list[tuple[float, str, str]] = []
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        searches = [pool.submit(tavily_search, q) for q in queries_for(line, vehicle)]
+        seen: set[str] = set()
+        for fut in searches:
+            try:
+                for res in fut.result():
+                    text, url = res.get("raw_content") or "", res.get("url") or ""
+                    if len(text) >= 200 and url and url not in seen:
+                        seen.add(url)
+                        pages.append((float(res.get("score") or 0), text, url))
+            except httpx.HTTPError as exc:
+                warnings.append(f"Price search failed ({type(exc).__name__}); price checks show Unable to verify.")
+        pages.sort(key=lambda p: -p[0])   # read the most relevant pages only: each read is a model call
+        reads = [pool.submit(extract_listings, text, url, line, vehicle) for _, text, url in pages[:MAX_PAGES_PER_PART]]
+        for fut in reads:
+            try:
+                facts.extend(fut.result())
+            except ModelError as exc:
+                warnings.append(f"A price page couldn't be read ({exc.kind}).")
+            except Exception as exc:  # one bad page never sinks the rest
+                warnings.append(f"A price page couldn't be read ({type(exc).__name__}).")
     if facts:
         try:
             cache.put_prices(key, facts)

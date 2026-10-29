@@ -12,7 +12,7 @@ from __future__ import annotations
 from pydantic import BaseModel
 
 from ..config import settings
-from ..jobs import JOBS, UNRECOGNISED, alias_match, get_job
+from ..jobs import JOBS, UNRECOGNISED, alias_match, get_job, inferred_kind
 from ..llm import ModelError, call_json, untrusted
 from ..schemas import Document
 
@@ -72,11 +72,7 @@ def normalise(doc: Document, *, use_model: bool = True) -> list[str]:
             ln.job, ln.job_confidence, ln.job_source = m.job, round(m.confidence, 2), "model"
         else:
             ln.job, ln.job_confidence, ln.job_source = UNRECOGNISED, (round(m.confidence, 2) if m else None), "model" if m else "none"
-        job = get_job(ln.job or "")
-        if job and job.kind == "labour" and ln.kind == "unknown":
-            ln.kind = "labour"
     for ln in doc.lines:
-        job = get_job(ln.job or "")
-        if job and job.kind == "labour" and ln.kind == "unknown":
-            ln.kind = "labour"
+        if ln.kind == "unknown":
+            ln.kind = inferred_kind(ln.job)
     return warnings

@@ -10,6 +10,10 @@ Endpoints
   POST /api/audit              corrected documents -> AuditReport
   POST /api/message            redraft the advisor message (e.g. in Hindi)
   GET  /api/demo/{name}        a stored sample case run through the real rules
+  GET  /api/session            whether sign-in is needed and who is signed in
+  POST /api/signup, /api/login, /api/logout, /api/account/delete   email + password accounts
+
+/api/extract, /api/audit and model-drafted messages need a session and are rate limited.
 """
 
 from __future__ import annotations
@@ -18,19 +22,21 @@ import base64
 import binascii
 import json
 import logging
+import time
 
-from fastapi import FastAPI, File, HTTPException, Request, UploadFile
+from fastapi import Depends, FastAPI, File, HTTPException, Request, Response, UploadFile
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
+from . import auth
 from . import facts as factmod
-from .audit import run_audit
+from .audit import display_model, run_audit
 from .config import ROOT, settings
 from .jobs import JOBS
 from .llm import ModelError, list_models
 from .rules import check_bill_arithmetic, check_line_arithmetic
-from .schemas import ApprovalNote, AuditReport, Document, Vehicle
+from .schemas import ApprovalNote, AuditReport, Document, TraceStep, Vehicle
 from .steps import message, normalise
 from .steps.extract import extract_document
 
@@ -42,6 +48,24 @@ MAX_BYTES = 10 * 1024 * 1024
 MAX_PAGES = 6
 
 
+CSP = ("default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+       "font-src https://fonts.gstatic.com; img-src 'self' blob: data:; connect-src 'self'; "
+       "frame-ancestors 'none'; base-uri 'self'; form-action 'self'")
+
+
+@app.middleware("http")
+async def _security_headers(request: Request, call_next):
+    resp = await call_next(request)
+    resp.headers.setdefault("Content-Security-Policy", CSP)
+    resp.headers.setdefault("X-Content-Type-Options", "nosniff")
+    resp.headers.setdefault("Referrer-Policy", "no-referrer")
+    resp.headers.setdefault("X-Frame-Options", "DENY")
+    resp.headers.setdefault("Permissions-Policy", "camera=(self), microphone=(), geolocation=()")
+    if request.url.path.startswith("/api/"):
+        resp.headers.setdefault("Cache-Control", "no-store")
+    return resp
+
+
 @app.exception_handler(Exception)
 async def _no_leak(request: Request, exc: Exception):
     # Log the error type only: never bill content, values or tracebacks with locals.
@@ -50,6 +74,12 @@ async def _no_leak(request: Request, exc: Exception):
 
 
 # ------------------------------------------------------------------ info
+
+
+@app.get("/healthz")
+def healthz():
+    """Liveness check for the host (no outside calls)."""
+    return {"ok": True}
 
 
 @app.get("/health")
@@ -84,9 +114,58 @@ def config():
         "estimate_amount_tolerance_pct": settings.estimate_amount_tolerance_pct,
         "models_configured": settings.models_configured,
         "search_configured": settings.search_configured,
+        "engines": {"vision": display_model(settings.model_vision), "text": display_model(settings.model_text),
+                    "message": display_model(settings.explain_model)},
         "privacy": "Bill photos are sent to an AI model hosted by Nebius to be read. FairFix keeps nothing after "
                    "the response: no bills, extracted fields or results are stored or logged.",
     }
+
+
+class SignupRequest(BaseModel):
+    email: str
+    password: str
+    invite_code: str | None = None
+
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+
+class DeleteRequest(BaseModel):
+    password: str
+
+
+def _session_out(user) -> dict:
+    return {"required": auth.enabled(), "signed_in": (not auth.enabled()) or user is not None,
+            "email": user.email if user else None, "invite_required": bool(settings.signup_codes)}
+
+
+@app.get("/api/session")
+def session(request: Request):
+    return _session_out(auth.current_user(request))
+
+
+@app.post("/api/signup")
+def signup(req: SignupRequest, request: Request, response: Response):
+    return _session_out(auth.signup(request, response, req.email, req.password, req.invite_code))
+
+
+@app.post("/api/login")
+def login(req: LoginRequest, request: Request, response: Response):
+    return _session_out(auth.login(request, response, req.email, req.password))
+
+
+@app.post("/api/logout")
+def logout(request: Request, response: Response):
+    auth.logout(request, response)
+    return _session_out(None)
+
+
+@app.post("/api/account/delete")
+def delete_account(req: DeleteRequest, request: Request, response: Response):
+    auth.delete_account(request, response, req.password)
+    return _session_out(None)
 
 
 @app.get("/api/vehicles")
@@ -103,6 +182,20 @@ def facts(vehicle_id: str):
     if not pack:
         raise HTTPException(404, "unknown vehicle")
     return pack.model_dump(mode="json")
+
+
+@app.get("/api/eval")
+def eval_results():
+    """Latest evaluation results (and the run before the fixes), parsed from eval/*.md."""
+    from .evalreport import eval_summary
+    return eval_summary()
+
+
+@app.get("/api/stats")
+def stats():
+    """Model-call statistics from logs/calls.jsonl. The log holds no bill content."""
+    from .evalreport import call_stats
+    return call_stats()
 
 
 @app.get("/api/jobs")
@@ -129,33 +222,59 @@ async def _read_pages(files: list[UploadFile] | None) -> list[tuple[bytes, str]]
     return pages
 
 
+def reading_hints(doc: Document) -> list[str]:
+    """Signs that a value was probably misread. Shown on the correction screen only; never a verdict."""
+    hints: list[str] = []
+    gt = doc.grand_total_inr.value
+    if gt is not None:
+        taxes = [t.amount_inr for t in doc.tax_lines if t.amount_inr is not None]
+        if any(abs(float(gt) - float(t)) < 0.01 for t in taxes):
+            hints.append("The grand total read is the same as a tax line. Check the total printed next to TOTAL or Grand Total.")
+        amounts = [float(ln.line_total_inr.value) for ln in doc.lines if ln.line_total_inr.value is not None]
+        if amounts and float(gt) < max(amounts) - 0.5:
+            hints.append("The grand total read is smaller than one of the line amounts. Check the total.")
+    blanks = [i + 1 for i, ln in enumerate(doc.lines) if ln.line_total_inr.value is None]
+    if blanks:
+        hints.append("Some amounts couldn't be read (line " + ", ".join(map(str, blanks)) +
+                     "). Check that the amounts next to them weren't shifted into the wrong row.")
+    return hints
+
+
 def _flags(doc: Document) -> list[dict]:
     out = [f.model_dump(mode="json") for f in check_bill_arithmetic(doc)]
     for i, ln in enumerate(doc.lines):
         f = check_line_arithmetic(ln)
         if f.category == "needs_confirmation":
             out.append({**f.model_dump(mode="json"), "line_index": i})
+    for h in reading_hints(doc):
+        out.append({"check": "reading", "category": "needs_confirmation", "label": h.rstrip("."), "rule": "reading hint"})
     return out
 
 
 @app.post("/api/extract")
-async def extract(bill: list[UploadFile] = File(...), estimate: list[UploadFile] | None = File(None)):
+async def extract(bill: list[UploadFile] = File(...), estimate: list[UploadFile] | None = File(None),
+                  _user=Depends(auth.require_user("read"))):
     if not settings.models_configured:
         raise HTTPException(503, "Reading photos needs NEBIUS_API_KEY. You can still try the sample on the home page.")
     bill_pages = await _read_pages(bill)
     est_pages = await _read_pages(estimate)
     if not bill_pages:
         raise HTTPException(400, "Add at least one photo of the bill.")
+    t0 = time.perf_counter()
     try:
         bdoc = extract_document(bill_pages, "bill")
         edoc = extract_document(est_pages, "estimate") if est_pages else None
     except ModelError as exc:
         raise HTTPException(502, f"The bill couldn't be read ({exc.kind}). Try a sharper, flatter photo.")
+    read_ms = (time.perf_counter() - t0) * 1000
     warnings = normalise.normalise(bdoc)
     if edoc:
         warnings += normalise.normalise(edoc)
+    pages = len(bill_pages) + len(est_pages)
+    trace = TraceStep(step="read", label="Read the photos", engine=display_model(settings.model_vision), ms=read_ms,
+                      detail=f"{len(bdoc.lines)} lines from {pages} page{'s' if pages != 1 else ''}; personal details removed")
     return {"bill": bdoc.model_dump(mode="json"), "estimate": edoc.model_dump(mode="json") if edoc else None,
-            "flags": _flags(bdoc), "warnings": sorted(set(warnings))}
+            "flags": _flags(bdoc), "warnings": sorted(set(warnings)), "trace": trace.model_dump(mode="json")}
 
 
 # ------------------------------------------------------------------ audit
@@ -173,7 +292,7 @@ class AuditRequest(BaseModel):
 
 
 @app.post("/api/audit", response_model=AuditReport)
-def audit(req: AuditRequest):
+def audit(req: AuditRequest, _user=Depends(auth.require_user("audit"))):
     old = None
     if req.old_part_image_b64:
         if req.old_part_mime not in ALLOWED_MIME:
@@ -196,9 +315,13 @@ class MessageRequest(BaseModel):
 
 
 @app.post("/api/message")
-def redraft(req: MessageRequest):
+def redraft(req: MessageRequest, request: Request):
     lang = req.lang if req.lang in ("en", "hi") else "en"
-    if settings.models_configured:
+    # Without a session (e.g. someone trying a sample) the message comes from the template: no model credits spent.
+    signed_in = not auth.enabled() or auth.current_user(request) is not None
+    if signed_in and auth.enabled():
+        auth.require_user("audit")(request)
+    if settings.models_configured and signed_in:
         text, src = message.draft_message(req.report, lang)
     else:
         text, src = message.template_message(req.report, lang), "template"
