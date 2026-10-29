@@ -174,10 +174,8 @@ async function init() {
     const go = e.target.closest("[data-go]");
     if (!go) return;
     e.preventDefault();
-    if (go.dataset.go === "vehicle") {
-      location.href = "/signin.html";
-      return;
-    }
+    // Signed-in people go straight to the bill form; everyone else signs in first.
+    if (go.dataset.go === "vehicle" && !(await ensureAccess())) return;
     show(go.dataset.go);
   });
   $("#signed").addEventListener("click", async () => {
